@@ -136,9 +136,10 @@ module DE2_115 (
 	inout [6:0] EX_IO
 );
 
-logic keydown;
+logic keydown, keydown1, keydown2;
 logic [3:0] random_value;
 logic [2:0] state_value;
+logic [3:0] saved_value;
 
 Debounce deb0(
 	.i_in(KEY[0]),
@@ -147,11 +148,18 @@ Debounce deb0(
 	.o_neg(keydown)
 );
 
-Debounce deb2(
+Debounce deb1(
 	.i_in(KEY[2]),
 	.i_rst_n(KEY[1]),
 	.i_clk(CLOCK_50),
 	.o_neg(keydown1)
+);
+
+Debounce deb2(
+	.i_in(KEY[3]),
+	.i_rst_n(KEY[1]),
+	.i_clk(CLOCK_50),
+	.o_neg(keydown2)
 );
 
 Top top0(
@@ -159,8 +167,10 @@ Top top0(
 	.i_rst_n(KEY[1]),
 	.i_start(keydown),
 	.i_stop(keydown1),
+	.i_save(keydown2),
 	.o_random_out(random_value),
-	.o_state(state_value)
+	.o_state(state_value),
+	.o_saved(saved_value)
 );
 
 SevenHexDecoder seven_dec0(
@@ -169,18 +179,25 @@ SevenHexDecoder seven_dec0(
 	.o_seven_one(HEX0)
 );
 
+SevenHexDecoder seven_dec1(
+	.i_hex(saved_value),
+	.o_seven_ten(HEX5),
+	.o_seven_one(HEX4)
+);
+
 LED LED0(
 	.i_clk(CLOCK_50),
 	.i_state(state_value),
 	.i_random_out(random_value),
+	.i_rst_n(KEY[1]),
 	.o_LEDG(LEDG),
 	.o_LEDR(LEDR),
 );
 
 assign HEX2 = '1;
 assign HEX3 = '1;
-assign HEX4 = '1;
-assign HEX5 = '1;
+//assign HEX4 = '1;
+//assign HEX5 = '1;
 assign HEX6 = '1;
 assign HEX7 = '1;
 

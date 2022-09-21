@@ -31,9 +31,9 @@ module Top (input        i_clk,
 	parameter S_SLOW = 3'd3;
 	parameter S_STOP = 3'd4;
 	parameter S_FINAL = 3'd5;
-	parameter threshold1 = 30'd500;
-	parameter threshold2 = 30'd500;
-	parameter threshold3 = 30'd500;
+	parameter threshold1 = 30'd100000000;
+	parameter threshold2 = 30'd100000000;
+	parameter threshold3 = 30'd100000000;
 
 	
 	// ===== Registers & Wires =====
@@ -188,16 +188,16 @@ module Top (input        i_clk,
 			S_FAST: begin
 				if(FAST_counter == 0) input_lcg_nxt = IDLE_counter;
 				else begin
-					if((FAST_counter % 60) == 0) input_lcg_nxt = o_random_out;
+					if((FAST_counter % 600000) == 0) input_lcg_nxt = o_random_out;
 					else input_lcg_nxt = input_lcg;
 				end
 			end
 			S_MEDIUM: begin
-				if((MEDIUM_counter % 200) == 0) input_lcg_nxt = o_random_out;
+				if((MEDIUM_counter % 2000000) == 0) input_lcg_nxt = o_random_out;
 				else input_lcg_nxt = input_lcg;
 			end
 			S_SLOW: begin
-				if((SLOW_counter % 800) == 0) input_lcg_nxt = o_random_out;
+				if((SLOW_counter % 8000000) == 0) input_lcg_nxt = o_random_out;
 				else input_lcg_nxt = input_lcg;
 			end
 			S_STOP: begin
@@ -218,11 +218,11 @@ module Top (input        i_clk,
 			end
 			S_STOP, S_FINAL: begin
 				saved_num_nxt = (i_save) ? output_lcg : saved_num; //write
-				saved_bf_nxt = '1;
+				saved_bf_nxt = 0;
 			end
 			default: begin
 				saved_num_nxt = saved_num;
-				saved_bf_nxt = '1;
+				saved_bf_nxt = 0;
 			end
 		endcase
 	end
