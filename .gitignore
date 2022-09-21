@@ -1,0 +1,8 @@
+*.log
+*.history
+*.conf
+*.fsdb
+*.rc
+/lab1/sim/BSSLib.lib++/
+/lab1/sim/INCA_libs/
+/lab1/sim/nWaveLog/
