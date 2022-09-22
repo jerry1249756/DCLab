@@ -89,3 +89,4 @@ always_comb begin
 		default: begin o_seven_ten = DN; o_seven_one = DN; end
 	endcase
 end
+endmodule
