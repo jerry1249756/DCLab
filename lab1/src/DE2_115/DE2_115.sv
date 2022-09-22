@@ -139,7 +139,7 @@ module DE2_115 (
 logic keydown, keydown1, keydown2;
 logic [3:0] random_value;
 logic [2:0] state_value;
-logic [3:0] saved_value;
+logic [4:0] saved_value;
 
 Debounce deb0(
 	.i_in(KEY[0]),
@@ -179,7 +179,7 @@ SevenHexDecoder seven_dec0(
 	.o_seven_one(HEX0)
 );
 
-SevenHexDecoder seven_dec1(
+SevenHexDecoder4 seven_dec1(
 	.i_hex(saved_value),
 	.o_seven_ten(HEX5),
 	.o_seven_one(HEX4)

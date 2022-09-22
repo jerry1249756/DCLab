@@ -21,7 +21,7 @@ module Top (input        i_clk,
 			input 		 i_stop,
 			input        i_save,
 			output [3:0] o_random_out,
-			output [3:0] o_saved,
+			output [4:0] o_saved,
 			output [2:0] o_state);
 			
 
@@ -46,7 +46,7 @@ module Top (input        i_clk,
 
 	//LCG register wire
 	logic [3:0] input_lcg , input_lcg_nxt, output_lcg;
-	logic [3:0] saved_bf, saved_bf_nxt, saved_num, saved_num_nxt;
+	logic [4:0] saved_bf, saved_bf_nxt, saved_num, saved_num_nxt;
 
 	assign o_random_out = output_lcg;
 	assign o_state = state;
@@ -217,12 +217,16 @@ module Top (input        i_clk,
 				saved_bf_nxt = (i_save) ? saved_num : saved_bf; //read
 			end
 			S_STOP, S_FINAL: begin
-				saved_num_nxt = (i_save) ? output_lcg : saved_num; //write
-				saved_bf_nxt = 0;
+				if(i_save) begin
+					saved_num_nxt[3:0] = output_lcg; //write
+					saved_num_nxt[4] = 1'd0;
+				end
+				else saved_num_nxt = saved_num;		
+				saved_bf_nxt = 5'd31;
 			end
 			default: begin
 				saved_num_nxt = saved_num;
-				saved_bf_nxt = 0;
+				saved_bf_nxt = 5'd31;
 			end
 		endcase
 	end

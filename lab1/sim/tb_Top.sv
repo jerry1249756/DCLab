@@ -72,7 +72,7 @@ initial begin
 	@(negedge i_clk) i_start = 1;
 	@(negedge i_clk);
 	@(negedge i_clk) i_start = 0;
-	#(cycle*500);
+	#(cycle*300);
 	@(negedge i_clk) i_stop = 1;
 	@(negedge i_clk) i_stop = 0;
 	#(cycle*30);
@@ -81,7 +81,10 @@ initial begin
 	#(cycle*30);
 	@(negedge i_clk) i_stop = 1;
 	@(negedge i_clk) i_stop = 0;
-	#(cycle*1050);
+	#(cycle*650);
+	@(negedge i_clk) i_save = 1;
+	@(negedge i_clk) i_save = 0;
+	#(cycle*600);
 	@(negedge i_clk);
 	@(negedge i_clk) i_start = 1;
 	@(negedge i_clk) i_start = 0;
