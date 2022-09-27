@@ -3,9 +3,14 @@
 *.conf
 *.fsdb
 *.rc
+*.qpf
+*.qsf
+*.bak
 /lab1/sim/BSSLib.lib++/
 /lab1/sim/INCA_libs/
 /lab1/sim/nWaveLog/
 /lab2/sim/BSSLib.lib++/
 /lab2/sim/INCA_libs/
 /lab2/sim/nWaveLog/
+/lab2/src/output_files/
+/lab2/src/db/

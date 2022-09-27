@@ -19,7 +19,7 @@ module Top (input        i_clk,
 			input        i_rst_n,
 			input        i_start,
 			input 		 i_stop,
-			input        i_save,
+			input 		 i_save,
 			output [3:0] o_random_out,
 			output [4:0] o_saved,
 			output [2:0] o_state);
@@ -44,11 +44,13 @@ module Top (input        i_clk,
 	logic [29:0] MEDIUM_counter , MEDIUM_counter_nxt;
 	logic [29:0] SLOW_counter , SLOW_counter_nxt;
 
+	logic [3:0] save, save_nxt;
 	//LCG register wire
 	logic [3:0] input_lcg , input_lcg_nxt, output_lcg;
-	logic [4:0] saved_bf, saved_bf_nxt, saved_num, saved_num_nxt;
+	logic [3:0] output_save;
 
 	assign o_random_out = output_lcg;
+	assign o_save_out = output_save;
 	assign o_state = state;
 	assign o_saved = saved_bf;
 	
@@ -56,7 +58,7 @@ module Top (input        i_clk,
 		.i_lcg(input_lcg),
 		.o_lcg(output_lcg)
 	);
-
+	
 
 	always_comb begin
 		// FSM
@@ -124,10 +126,27 @@ module Top (input        i_clk,
 				end
 				else state_nxt = state;
 			end
+			S_FINAL: begin
+				if (i_start) begin
+					state_nxt = S_IDLE;
+				end
+				else state_nxt = state;
+			end
 			default: begin
 				state_nxt = state;
 				state_last_nxt = state_last;
 			end
+		endcase
+	end
+
+	always_comb begin
+		//save
+		case(state)
+			S_IDLE: save_nxt = save;
+			S_FAST: save_nxt = save;
+			S_MEDIUM: save_nxt = save;
+			S_SLOW: save_nxt = save;
+			S_STOP: save_nxt = input_lcg;
 		endcase
 	end
 
@@ -165,7 +184,7 @@ module Top (input        i_clk,
 				SLOW_counter_nxt = SLOW_counter;
 			end
 			S_FINAL: begin
-				IDLE_counter_nxt = IDLE_counter;
+				IDLE_counter_nxt = 0;
 				FAST_counter_nxt = 0;
 				MEDIUM_counter_nxt = 0;
 				SLOW_counter_nxt = 0;
@@ -183,9 +202,12 @@ module Top (input        i_clk,
 		//lcg_input
 		case(state)
 			S_IDLE: begin
-				input_lcg_nxt = input_lcg;
+				save_nxt = save;
+				if(i_save) input_lcg_nxt = save;
+				else input_lcg_nxt = input_lcg;
 			end
 			S_FAST: begin
+				save_nxt = save;
 				if(FAST_counter == 0) input_lcg_nxt = IDLE_counter;
 				else begin
 					if((FAST_counter % 600000) == 0) input_lcg_nxt = o_random_out;
@@ -193,14 +215,20 @@ module Top (input        i_clk,
 				end
 			end
 			S_MEDIUM: begin
+				save_nxt = save;
 				if((MEDIUM_counter % 2000000) == 0) input_lcg_nxt = o_random_out;
 				else input_lcg_nxt = input_lcg;
 			end
 			S_SLOW: begin
+				save_nxt = save;
 				if((SLOW_counter % 8000000) == 0) input_lcg_nxt = o_random_out;
 				else input_lcg_nxt = input_lcg;
 			end
 			S_STOP: begin
+				save_nxt = o_random_out;
+				input_lcg_nxt = input_lcg;
+			end
+			S_FINAL: begin
 				input_lcg_nxt = input_lcg;
 			end
 			default: begin

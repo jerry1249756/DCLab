@@ -169,8 +169,8 @@ Top top0(
 	.i_stop(keydown1),
 	.i_save(keydown2),
 	.o_random_out(random_value),
-	.o_state(state_value),
-	.o_saved(saved_value)
+	.o_save_out(save_value),
+	.o_state(state_value)
 );
 
 SevenHexDecoder seven_dec0(
@@ -179,8 +179,8 @@ SevenHexDecoder seven_dec0(
 	.o_seven_one(HEX0)
 );
 
-SevenHexDecoder4 seven_dec1(
-	.i_hex(saved_value),
+SevenHexDecoder seven_dec1(
+	.i_hex(save_value),
 	.o_seven_ten(HEX5),
 	.o_seven_one(HEX4)
 );
