@@ -34,7 +34,7 @@ module MontgomeryAlgorithm (
                 else state_nxt = state;
             end
             S_OUT: begin
-                if(counter >= 9'd260) state_nxt = S_IDLE;
+                if(counter >= 9'd258) state_nxt = S_IDLE;
                 else state_nxt = state;
             end
             default: state_nxt = state;
@@ -44,13 +44,13 @@ module MontgomeryAlgorithm (
     always_comb begin
         case(state)
             S_IDLE: begin
-                counter_nxt = counter;
+                counter_nxt = 9'd0;
             end
             S_CAL: begin
-                counter_nxt = counter + 1'd1;
+                counter_nxt = counter + 9'd1;
             end
             S_OUT: begin
-                counter_nxt = counter + 1'd1; 
+                counter_nxt = counter + 9'd1; 
             end
             default: counter_nxt = counter;
         endcase
@@ -59,7 +59,7 @@ module MontgomeryAlgorithm (
     always_comb begin 
         case(state)
             S_IDLE: begin
-                m_nxt = 1'd0;
+                m_nxt = 257'd0;
                 ready_nxt = 1'd0;
             end
 
