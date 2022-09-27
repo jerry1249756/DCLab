@@ -127,8 +127,8 @@ logic [2:0] state, state_nxt;
 
 logic [8:0] counter, counter_nxt;
 
-logic [255:0]  Rsa256Core_result;
-logic 		   Rsa256Core_ready;
+logic [255:0]   Rsa256Core_result;
+logic 			Rsa256Core_ready;
 
 logic [255:0] t, t_nxt;
 logic [255:0] m, m_nxt;
@@ -136,6 +136,17 @@ logic [255:0] m, m_nxt;
 
 assign o_a_pow_d = Rsa256Core_result;
 assign o_finished = Rsa256Core_ready;
+
+ModuloProduct ModuloProduct0(
+	.i_clk(i_clk),
+	.i_rst(i_rst),
+	.i_valid(),
+	.i_N(),
+	.i_a(),
+	.i_b(),
+
+
+);
 
 //FSM
 always_comb begin
@@ -193,6 +204,25 @@ always_comb begin
 	endcase
 end
 
+always_comb begin
+	case(state)
+		S_IDLE : begin
+			
+		end
+		S_PREP : begin
+			
+		end
+		S_MONT : begin
+			
+		end
+		S_CALC : begin
+			
+		end
+		default : begin
+			
+		end
+	endcase
+end
 
 always_ff @(posedge i_clk or negedge i_rst_n) begin
 		// reset
