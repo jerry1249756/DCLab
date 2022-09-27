@@ -53,7 +53,10 @@ initial begin
 	@(negedge i_clk) i_valid = 1;
 	@(negedge i_clk) i_valid = 0;
 	#(cycle*300);
-
+	@(negedge i_clk) i_valid = 1;
+	@(negedge i_clk) i_valid = 0;
+	#(cycle*300);
+	
 	$finish;
 end
 
