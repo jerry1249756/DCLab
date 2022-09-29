@@ -3,7 +3,7 @@ module ModuloProduct (
 	input          i_rst,
 	input          i_valid,
 	input  [255:0] i_N,
-	input  [255:0] i_a,	
+	input  [256:0] i_a,	
 	input  [255:0] i_b,
 	input  [8:0]   i_k,
 	output [255:0] o_moduloproduct,
@@ -81,7 +81,7 @@ module ModuloProduct (
 			counter <= counter_nxt;
 			reg_m <= reg_m_nxt;
 			reg_t <= reg_t_nxt;
-			$display("%d%d%d", i_a[counter], reg_m, reg_t);
+			//$display("%d%d%d", i_a[counter], reg_m, reg_t);
 		end
 	end
 
