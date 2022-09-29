@@ -116,7 +116,7 @@ module MontgomeryAlgorithm (
             counter <= counter_nxt;
             m <= m_nxt;
             ready <= ready_nxt;
-            $display("%d", m);
+            //$display("%d", m);
         end
 
     end

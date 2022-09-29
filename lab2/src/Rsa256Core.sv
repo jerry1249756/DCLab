@@ -19,6 +19,9 @@ parameter S_PREP = 3'd1;
 parameter S_MONT = 3'd2;
 parameter S_CALC = 3'd3;
 
+//TODO!
+logic [255:0] i_a_reg;
+
 //FSN
 logic [2:0] state, state_nxt;
 
@@ -30,7 +33,7 @@ logic [8:0] CALC_counter, CALC_counter_nxt;
 //ModuloProduct
 logic moduloproduct_valid;
 logic [255:0] moduloproduct_N;
-logic [255:0] moduloproduct_a;
+logic [256:0] moduloproduct_a;
 logic [255:0] moduloproduct_b;
 logic [8:0] moduloproduct_k;
 logic [255:0] moduloproduct_output;
@@ -196,9 +199,9 @@ always_comb begin
 				moduloproduct_valid = 1'd0;
 			end
 			moduloproduct_N = i_n;
-			moduloproduct_a = 256'h1000000000000000000000000000000000000000000000000000000000000000;
+			moduloproduct_a =  257'd1 << 256 ;
 			moduloproduct_b = i_a;
-			moduloproduct_k = 9'd256;
+			moduloproduct_k = 9'd257;
 			//MontgomeryAlgorithm
 			montgomeryalgorithm_valid0 = 0;
 			montgomeryalgorithm_N0 = 0;
