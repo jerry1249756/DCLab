@@ -35,9 +35,8 @@ logic [255:0] rsa_dec;
 assign avm_address = avm_address_r;
 assign avm_read = avm_read_r;
 assign avm_write = avm_write_r;
-//assign avm_writedata = dec_r[247-:8];  ////////////////////////////////don't know why dec_r[247-:8]
-assign avm_writedata = dec_r[7:0];         ///////////////////////////////USE dec_r[7:0] first 
-
+assign avm_writedata = dec_r[247-:8]; 
+         
 
 Rsa256Core rsa256_core(
     .i_clk(avm_clk),
@@ -71,15 +70,15 @@ always_comb begin
     //state
     case(state_r)
         S_GET_KEY_N: begin
-            if(bytes_counter_r == 31) state_w = S_GET_KEY_D;
+            if(bytes_counter_r == 31 && avm_address_r == RX_BASE) state_w = S_GET_KEY_D;
             else state_w = state_r;
         end
         S_GET_KEY_D: begin
-            if(bytes_counter_r == 63) state_w = S_GET_DATA;
+            if(bytes_counter_r == 63 && avm_address_r == RX_BASE) state_w = S_GET_DATA;
             else state_w = state_r;
         end
         S_GET_DATA: begin
-            if(bytes_counter_r == 95) state_w = S_WAIT_CALCULATE;
+            if(bytes_counter_r == 95 && avm_address_r == RX_BASE) state_w = S_WAIT_CALCULATE;
             else state_w = state_r;
         end
         S_WAIT_CALCULATE: begin
@@ -87,7 +86,7 @@ always_comb begin
             else state_w = state_r;
         end
         S_SEND_DATA: begin
-            if(bytes_counter_r == 128) state_w = S_GET_KEY_N;
+            if(bytes_counter_r == 127 && avm_address_r == TX_BASE) state_w = S_GET_KEY_N;
             else state_w = state_r;
         end
         default: begin
@@ -102,9 +101,9 @@ always_comb begin
     case(state_r)
         S_GET_KEY_N: if(avm_address_r == RX_BASE ) bytes_counter_w = bytes_counter_r + 1;
         S_GET_KEY_D: if(avm_address_r == RX_BASE ) bytes_counter_w = bytes_counter_r + 1;
-        S_GET_DATA: if(avm_address_r == RX_BASE && bytes_counter_r !== 95) bytes_counter_w = bytes_counter_r + 1;
+        S_GET_DATA: if(avm_address_r == RX_BASE ) bytes_counter_w = bytes_counter_r + 1;
         S_WAIT_CALCULATE: begin
-            if(bytes_counter_r == 95) bytes_counter_w = bytes_counter_r + 1;
+            if(bytes_counter_r == 96) bytes_counter_w = bytes_counter_r + 1;
             else bytes_counter_w = bytes_counter_r;
         end
         S_SEND_DATA: begin
@@ -124,9 +123,9 @@ always_comb begin
     rsa_start_w = rsa_start_r;
     case(state_r)
         S_WAIT_CALCULATE: begin
-            case(bytes_counter_r)
-                7'd95: rsa_start_w = 1;
-                7'd96: rsa_start_w = 0;
+            case(bytes_counter_r) 
+                7'd96: rsa_start_w = 1;
+                7'd97: rsa_start_w = 0;
                 default: rsa_start_w = rsa_start_r;
             endcase
         end
@@ -142,19 +141,19 @@ always_comb begin
     case(state_r)
         S_GET_KEY_N: begin
             if(!avm_waitrequest && avm_readdata[RX_OK_BIT] && avm_address_r == STATUS_BASE) StartRead(RX_BASE);
-            if(bytes_counter_r == 31) StartRead(STATUS_BASE);
+            if(avm_address_r == RX_BASE) StartRead(STATUS_BASE);
         end
         S_GET_KEY_D: begin
             if(!avm_waitrequest && avm_readdata[RX_OK_BIT] && avm_address_r == STATUS_BASE) StartRead(RX_BASE);
-            if(bytes_counter_r == 63) StartRead(STATUS_BASE);
+            if(avm_address_r == RX_BASE) StartRead(STATUS_BASE);
         end
         S_GET_DATA: begin
             if(!avm_waitrequest && avm_readdata[RX_OK_BIT] && avm_address_r == STATUS_BASE) StartRead(RX_BASE);
-            if(bytes_counter_r == 95) StartRead(STATUS_BASE);
+            if(avm_address_r == RX_BASE) StartRead(STATUS_BASE);
         end
         S_SEND_DATA: begin
             if(!avm_waitrequest && avm_readdata[TX_OK_BIT] && avm_address_r == STATUS_BASE) StartWrite(TX_BASE);
-            if(bytes_counter_r == 127) StartRead(STATUS_BASE);
+            if(avm_address_r == TX_BASE) StartRead(STATUS_BASE);
         end
         default: begin
             avm_read_w = avm_read_r;
@@ -170,15 +169,9 @@ always_comb begin
     d_w = d_r;
     enc_w = enc_r;
     case(state_r)
-        S_GET_KEY_N: begin
-            if(avm_address_r == RX_BASE) n_w[(bytes_counter_r * 8 + 7) -: 8] = avm_readdata[7:0];
-        end
-        S_GET_KEY_D: begin
-            if(avm_address_r == RX_BASE) d_w[((bytes_counter_r - 32) * 8 + 7) -: 8] = avm_readdata[7:0];
-        end
-        S_GET_DATA: begin
-            if(avm_address_r == RX_BASE) enc_w[((bytes_counter_r - 64) * 8 + 7) -: 8] = avm_readdata[7:0];
-        end
+        S_GET_KEY_N: if(avm_address_r == RX_BASE) n_w[(bytes_counter_r * 8 + 7)-:8] = avm_readdata[7:0];
+        S_GET_KEY_D: if(avm_address_r == RX_BASE) d_w[((bytes_counter_r - 32) * 8 + 7)-:8] = avm_readdata[7:0];
+        S_GET_DATA: if(avm_address_r == RX_BASE) enc_w[((bytes_counter_r - 64) * 8 + 7)-:8] = avm_readdata[7:0];
         default: begin
             n_w = n_r;
             d_w = d_r;
@@ -193,7 +186,7 @@ always_comb begin
     case(state_r)
         S_WAIT_CALCULATE: if(rsa_finished) dec_w = rsa_dec;
         S_SEND_DATA: begin
-            if(avm_address_r == TX_BASE && avm_write_r == 1) dec_w = dec_r >> 8; 
+            if(avm_address_r == TX_BASE) dec_w = dec_r << 8; 
         end
         default: dec_w = dec_r;
     endcase
