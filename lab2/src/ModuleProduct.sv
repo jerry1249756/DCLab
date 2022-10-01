@@ -81,7 +81,7 @@ module ModuloProduct (
 			counter <= counter_nxt;
 			reg_m <= reg_m_nxt;
 			reg_t <= reg_t_nxt;
-			//$display("%d%d%d", i_a[counter], reg_m, reg_t);
+			$display("%d%d%d", i_a[counter], reg_m, reg_t);
 		end
 	end
 

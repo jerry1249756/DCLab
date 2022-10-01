@@ -27,6 +27,7 @@ module tb;
 		$fsdbDumpvars;
 		fp_e = $fopen("../pc_python/golden/enc1.bin", "rb");
 		fp_d = $fopen("../pc_python/golden/dec1.txt", "rb");
+		start_cal = 0;
 		rst = 1;
 		#(2*CLK)
 		rst = 0;
