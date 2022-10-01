@@ -72,6 +72,10 @@ always @(posedge clk or negedge rst_n) begin
 		should_keep <= 0;
 	end else begin
 		if (should_keep && (prev !== rdy_and_dat || ^prev === 1'bx)) begin
+			$display("BW:   %d" , BW);////////////add
+			$display("should keep:   %d" , should_keep); ////////////add
+			$display("prev:   %b" , prev);////////////add
+			$display("rdy_and_data:   %b" , rdy_and_dat);//////add
 			$display("Protocol not met %m");
 			$display("+====================+");
 			$display("|  Simulation Abort  |");
