@@ -107,7 +107,7 @@ always_comb begin
             else bytes_counter_w = bytes_counter_r;
         end
         S_SEND_DATA: begin
-            if(!avm_waitrequest && bytes_counter_r == 127) bytes_counter_w = 0;
+            if(!avm_waitrequest && bytes_counter_r == 127 && avm_address_r == TX_BASE) bytes_counter_w = 0;
             else begin
                 if(!avm_waitrequest && avm_address_r == TX_BASE) bytes_counter_w = bytes_counter_r + 1;
             end
