@@ -17,8 +17,8 @@ module ModuloProduct (
 	parameter S_FINAL = 2'd2;
 	logic [1:0]   state, state_nxt;
 	logic [8:0]   counter, counter_nxt;
-	logic [255:0] reg_t, reg_t_nxt;
-	logic [255:0] reg_m, reg_m_nxt;
+	logic [256:0] reg_t, reg_t_nxt;
+	logic [256:0] reg_m, reg_m_nxt;
 
 	assign o_moduloproduct = reg_m;
 	assign o_ready = (state == S_FINAL) ? 1'd1 : 1'd0;
@@ -30,7 +30,7 @@ module ModuloProduct (
 				counter_nxt = 9'd0;
 			end
 			S_CALC: begin
-				state_nxt = (counter > i_k) ? S_FINAL : state;
+				state_nxt = (counter >= i_k) ? S_FINAL : state;
 				counter_nxt = counter + 9'd1;
 			end
 			S_FINAL: begin
@@ -76,14 +76,14 @@ module ModuloProduct (
 			state <= S_IDLE;
 			counter <= 9'd0;
 			reg_m <= 256'd0;
-			reg_t <= 256'd0;
+			reg_t <= i_b;
 		end
 		else begin
 			state <= state_nxt;
 			counter <= counter_nxt;
 			reg_m <= reg_m_nxt;
 			reg_t <= reg_t_nxt;
-			//$display("%d%d%d", i_a[counter], reg_m, reg_t);
+			$display("%d%d", reg_m, reg_t);
 		end
 	end
 
@@ -417,7 +417,7 @@ always_comb begin
 			moduloproduct_N = i_n;
 			moduloproduct_a =  257'b1 << 256 ;
 			moduloproduct_b = i_a_reg;
-			moduloproduct_k = 9'd256;
+			moduloproduct_k = 9'd257;
 			//MontgomeryAlgorithm
 			montgomeryalgorithm_valid0 = 0;
 			montgomeryalgorithm_N0 = 0;
