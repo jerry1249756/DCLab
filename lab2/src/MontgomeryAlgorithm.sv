@@ -15,12 +15,12 @@ module MontgomeryAlgorithm (
     parameter S_CAL = 2'd1;
     parameter S_OUT = 2'd2;
 
-    logic [256:0] m, m_nxt;
+    logic [257:0] m, m_nxt;
     logic ready, ready_nxt;
     logic [1:0] state, state_nxt;
     logic [8:0] counter, counter_nxt;
 
-    assign o_montgomeryalgorithm = m;
+    assign o_montgomeryalgorithm = m[255:0];
     assign o_ready = ready;
 
     always_comb begin

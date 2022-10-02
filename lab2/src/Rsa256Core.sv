@@ -83,7 +83,7 @@ module ModuloProduct (
 			counter <= counter_nxt;
 			reg_m <= reg_m_nxt;
 			reg_t <= reg_t_nxt;
-			$display("%d%d", reg_m, reg_t);
+			//$display("%d%d", reg_m, reg_t);
 		end
 	end
 
@@ -104,12 +104,12 @@ module MontgomeryAlgorithm (
     parameter S_CAL = 2'd1;
     parameter S_OUT = 2'd2;
 
-    logic [256:0] m, m_nxt;
+    logic [257:0] m, m_nxt;
     logic ready, ready_nxt;
     logic [1:0] state, state_nxt;
     logic [8:0] counter, counter_nxt;
 
-    assign o_montgomeryalgorithm = m;
+    assign o_montgomeryalgorithm = m[255:0];
     assign o_ready = ready;
 
     always_comb begin
@@ -336,7 +336,7 @@ always_comb begin
 			end
 		end
 		S_CALC : begin
-			if(CALC_counter == 256) begin
+			if(CALC_counter == 255) begin
 				state_nxt = S_IDLE;
 			end
 			else begin
@@ -410,6 +410,7 @@ always_comb begin
 			//ModuloProduct
 			if(PREP_counter == 0) begin
 				moduloproduct_valid = 1'd1;
+				$display("%d", t);
 			end
 			else begin
 				moduloproduct_valid = 1'd0;
@@ -559,7 +560,7 @@ always_comb begin
 			Rsa256Core_result = 0;
 		end
 		S_CALC : begin
-			if(CALC_counter == 256) begin
+			if(CALC_counter == 255) begin
 				Rsa256Core_ready = 1'b1;
 				Rsa256Core_result = m;
 			end
