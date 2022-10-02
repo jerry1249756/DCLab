@@ -86,7 +86,7 @@ always_comb begin
             else state_w = state_r;
         end
         S_SEND_DATA: begin
-            if(!avm_waitrequest && bytes_counter_r == 127 && avm_address_r == TX_BASE) state_w = S_GET_KEY_N;
+            if(!avm_waitrequest && bytes_counter_r == 127 && avm_address_r == TX_BASE) state_w = S_GET_DATA;
             else state_w = state_r;
         end
         default: begin
@@ -107,7 +107,7 @@ always_comb begin
             else bytes_counter_w = bytes_counter_r;
         end
         S_SEND_DATA: begin
-            if(!avm_waitrequest && bytes_counter_r == 127 && avm_address_r == TX_BASE) bytes_counter_w = 0;
+            if(!avm_waitrequest && bytes_counter_r == 127 && avm_address_r == TX_BASE) bytes_counter_w = 64;
             else begin
                 if(!avm_waitrequest && avm_address_r == TX_BASE) bytes_counter_w = bytes_counter_r + 1;
             end
@@ -169,9 +169,9 @@ always_comb begin
     d_w = d_r;
     enc_w = enc_r;
     case(state_r)
-        S_GET_KEY_N: if(!avm_waitrequest && avm_address_r == RX_BASE) n_w[(bytes_counter_r * 8 + 7)-:8] = avm_readdata[7:0];
-        S_GET_KEY_D: if(!avm_waitrequest && avm_address_r == RX_BASE) d_w[((bytes_counter_r - 32) * 8 + 7)-:8] = avm_readdata[7:0];
-        S_GET_DATA: if(!avm_waitrequest && avm_address_r == RX_BASE) enc_w[((bytes_counter_r - 64) * 8 + 7)-:8] = avm_readdata[7:0];
+        S_GET_KEY_N: if(!avm_waitrequest && avm_address_r == RX_BASE) n_w[((31-bytes_counter_r) * 8 + 7)-:8] = avm_readdata[7:0];
+        S_GET_KEY_D: if(!avm_waitrequest && avm_address_r == RX_BASE) d_w[((63-bytes_counter_r ) * 8 + 7)-:8] = avm_readdata[7:0];
+        S_GET_DATA: if(!avm_waitrequest && avm_address_r == RX_BASE) enc_w[((95-bytes_counter_r) * 8 + 7)-:8] = avm_readdata[7:0];
         default: begin
             n_w = n_r;
             d_w = d_r;
