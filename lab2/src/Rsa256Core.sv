@@ -230,7 +230,7 @@ parameter S_PREP = 3'd1;
 parameter S_MONT = 3'd2;
 parameter S_CALC = 3'd3;
 
-logic [255:0] i_a_reg;
+logic [255:0] i_a_reg, i_a_reg_nxt;
 
 //FSN
 logic [2:0] state, state_nxt;
@@ -381,9 +381,9 @@ always_comb begin
 end
 
 always_comb begin
-	i_a_reg = i_a_reg;
-	if(state == S_IDLE && i_start == 1'b1) i_a_reg = i_a;
-	else i_a_reg = i_a_reg;
+	i_a_reg_nxt = i_a_reg;
+	if(state == S_IDLE && i_start == 1'b1) i_a_reg_nxt = i_a;
+	else i_a_reg_nxt = i_a_reg;
 end
 
 always_comb begin
@@ -585,6 +585,7 @@ always_ff @(posedge i_clk or posedge i_rst) begin
 		PREP_counter <= 0;
 		MONT_counter <= 0;
 		CALC_counter <= 0;
+		i_a_reg <= 0;
 	end
 	else begin
 		state <= state_nxt;
@@ -593,6 +594,7 @@ always_ff @(posedge i_clk or posedge i_rst) begin
 		PREP_counter <= PREP_counter_nxt;
 		MONT_counter <= MONT_counter_nxt;
 		CALC_counter <= CALC_counter_nxt;
+		i_a_reg <= i_a_reg_nxt;
 	end
 end
 
