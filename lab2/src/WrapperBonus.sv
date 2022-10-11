@@ -22,11 +22,15 @@ localparam S_GET_DATA = 2;
 localparam S_WAIT_CALCULATE = 3;
 localparam S_SEND_DATA = 4;
 
+localparam rst_threshold = 20'd1 << 19;
+
 logic [255:0] n_r, n_w, d_r, d_w, enc_r, enc_w, dec_r, dec_w;
 logic [2:0] state_r, state_w;
 logic [6:0] bytes_counter_r, bytes_counter_w;
 logic [4:0] avm_address_r, avm_address_w;
 logic avm_read_r, avm_read_w, avm_write_r, avm_write_w;
+
+logic [21:0] rst_counter_r, rst_counter_w;
 
 logic rsa_start_r, rsa_start_w;
 logic rsa_finished;
@@ -67,6 +71,20 @@ task StartWrite;
 endtask
 
 always_comb begin
+    rst_counter_w = rst_counter_r;
+    case(state_r)
+        S_GET_DATA: begin
+            rst_counter_w = rst_counter_r + 1;
+            if(rst_counter_r >= rst_threshold) rst_counter_w = 0;
+        end
+        S_WAIT_CALCULATE: rst_counter_w = 0;
+        default rst_counter_w = rst_counter_r;
+    endcase
+end
+
+
+always_comb begin
+    state_w = state_r;
     //state
     case(state_r)
         S_GET_KEY_N: begin
@@ -79,14 +97,16 @@ always_comb begin
         end
         S_GET_DATA: begin
             if(!avm_waitrequest && bytes_counter_r == 95 && avm_address_r == RX_BASE) state_w = S_WAIT_CALCULATE;
-            else state_w = state_r;
+            else begin
+                if(rst_counter_r >= rst_threshold) state_w = S_GET_KEY_N;
+            end
         end
         S_WAIT_CALCULATE: begin
             if(rsa_finished) state_w = S_SEND_DATA;
             else state_w = state_r;
         end
         S_SEND_DATA: begin
-            if(!avm_waitrequest && bytes_counter_r == 127 && avm_address_r == TX_BASE) state_w = S_GET_KEY_N;
+            if(!avm_waitrequest && bytes_counter_r == 127 && avm_address_r == TX_BASE) state_w = S_GET_DATA;
             else state_w = state_r;
         end
         default: begin
@@ -101,13 +121,16 @@ always_comb begin
     case(state_r)
         S_GET_KEY_N: if(!avm_waitrequest && avm_address_r == RX_BASE ) bytes_counter_w = bytes_counter_r + 1;
         S_GET_KEY_D: if(!avm_waitrequest && avm_address_r == RX_BASE ) bytes_counter_w = bytes_counter_r + 1;
-        S_GET_DATA: if(!avm_waitrequest && avm_address_r == RX_BASE ) bytes_counter_w = bytes_counter_r + 1;
+        S_GET_DATA: begin
+            if(!avm_waitrequest && avm_address_r == RX_BASE ) bytes_counter_w = bytes_counter_r + 1;
+            if(rst_counter_r >= rst_threshold) bytes_counter_w = 0;
+        end
         S_WAIT_CALCULATE: begin
             if(bytes_counter_r == 96) bytes_counter_w = bytes_counter_r + 1;
             else bytes_counter_w = bytes_counter_r;
         end
         S_SEND_DATA: begin
-            if(!avm_waitrequest && bytes_counter_r == 127 && avm_address_r == TX_BASE) bytes_counter_w = 0;
+            if(!avm_waitrequest && bytes_counter_r == 127 && avm_address_r == TX_BASE) bytes_counter_w = 64;
             else begin
                 if(!avm_waitrequest && avm_address_r == TX_BASE) bytes_counter_w = bytes_counter_r + 1;
             end
@@ -150,6 +173,7 @@ always_comb begin
         S_GET_DATA: begin
             if(!avm_waitrequest && avm_readdata[RX_OK_BIT] && avm_address_r == STATUS_BASE) StartRead(RX_BASE);
             if(!avm_waitrequest && avm_address_r == RX_BASE) StartRead(STATUS_BASE);
+            if(rst_counter_r >= rst_threshold) StartRead(STATUS_BASE);
         end
         S_SEND_DATA: begin
             if(!avm_waitrequest && avm_readdata[TX_OK_BIT] && avm_address_r == STATUS_BASE) StartWrite(TX_BASE);
@@ -171,7 +195,14 @@ always_comb begin
     case(state_r)
         S_GET_KEY_N: if(!avm_waitrequest && avm_address_r == RX_BASE) n_w[((31-bytes_counter_r) * 8 + 7)-:8] = avm_readdata[7:0];
         S_GET_KEY_D: if(!avm_waitrequest && avm_address_r == RX_BASE) d_w[((63-bytes_counter_r ) * 8 + 7)-:8] = avm_readdata[7:0];
-        S_GET_DATA: if(!avm_waitrequest && avm_address_r == RX_BASE) enc_w[((95-bytes_counter_r) * 8 + 7)-:8] = avm_readdata[7:0];
+        S_GET_DATA: begin
+            if(!avm_waitrequest && avm_address_r == RX_BASE) enc_w[((95-bytes_counter_r) * 8 + 7)-:8] = avm_readdata[7:0];
+            if(rst_counter_r >= rst_threshold) begin
+                n_w = 0;
+                d_w = 0;
+                enc_w = 0;
+            end
+        end
         default: begin
             n_w = n_r;
             d_w = d_r;
@@ -206,6 +237,7 @@ always_ff @(posedge avm_clk or posedge avm_rst) begin
         state_r <= S_GET_KEY_N;
         bytes_counter_r <= 0;
         rsa_start_r <= 0;
+        rst_counter_r <= 0;
     end else begin
         n_r <= n_w;
         d_r <= d_w;
@@ -217,6 +249,7 @@ always_ff @(posedge avm_clk or posedge avm_rst) begin
         state_r <= state_w;
         bytes_counter_r <= bytes_counter_w;
         rsa_start_r <= rsa_start_w;
+        rst_counter_r <= rst_counter_w;
     end
 end
 
