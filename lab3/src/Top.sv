@@ -126,7 +126,7 @@ AudRecorder recorder0(
 	.i_data(i_AUD_ADCDAT),
 	.o_address(addr_record),
 	.o_data(data_record),
-);
+);   
 
 always_comb begin
 	// design your control here
