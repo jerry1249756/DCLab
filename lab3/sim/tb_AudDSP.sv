@@ -1,6 +1,7 @@
+
 `timescale 1us/1us
 
-module tb_DSP;
+module tb_AudDSP;
 
 parameter	cycle = 100.0;
 //parameter	lr_cycle = 3800.0;
@@ -39,8 +40,8 @@ AudDSP dsp0(
 );
 
 initial begin
-	$fsdbDumpfile("tb_DSP.fsdb");
-	$fsdbDumpvars(0, tb_DSP, "+all");
+	$fsdbDumpfile("tb_AudDSP.fsdb");
+	$fsdbDumpvars(0, tb_AudDSP, "+all");
 end
 
 initial begin	
