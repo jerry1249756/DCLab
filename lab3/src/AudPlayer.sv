@@ -19,13 +19,15 @@ logic [15:0] reg_dac_data_r, reg_dac_data_w;
 
 logic aud_dacdat_r, aud_dacdat_w;
 
+logic flag;
+
 assign o_aud_dacdat = aud_dacdat_r;
 
 //state
 always_comb begin
 	case(state_r)
 		S_IDLE : begin
-			if(i_daclrck == 1'b1 && i_en == 1'b1) begin
+			if(i_daclrck == 1'b1 && i_en == 1'b1 && counter_r == 5'b0) begin
 				state_w = S_PLAY;
 			end
 			else begin
@@ -33,7 +35,7 @@ always_comb begin
 			end
 		end
 		S_PLAY : begin
-			if(counter_r == 5'd15) begin
+			if(i_daclrck == 1'b0 || i_en == 1'b0) begin
 				state_w = S_IDLE;
 			end
 			else begin
@@ -71,7 +73,8 @@ always_comb begin
 			aud_dacdat_w = 1'b0;
 		end
 		S_PLAY : begin
-			aud_dacdat_w = reg_dac_data_r[5'd15 - counter_r];
+			if(counter_r < 5'd16) aud_dacdat_w = reg_dac_data_r[5'd15 - counter_r];
+			else aud_dacdat_w = 1'b0;
 		end
 		default : begin
 			aud_dacdat_w = 1'b0;
