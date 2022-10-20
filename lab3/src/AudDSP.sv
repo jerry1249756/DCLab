@@ -24,7 +24,7 @@ module AudDSP (
 	input 		  i_start,
 	input 	 	  i_pause,
 	input 		  i_stop,
-	input  [4:0]  i_speed, // 1 mean 1x playing , 8 mean 8x playing
+	input  [3:0]  i_speed, // 1 mean 1x playing , 8 mean 8x playing
 	input 		  i_fast,
 	input 		  i_slow_0,
 	input 		  i_slow_1,
@@ -51,12 +51,12 @@ logic [2:0] slow_counter_r, slow_counter_w; // count the cycle for waiting in th
 logic wait_output_r, wait_output_w; // whether change back to IDLE state
 logic [2:0] save_state; // save state for pause
 logic signed [15:0] o_dac_data_save_r, o_dac_data_save_w; // save last data for calculating slow1
-
+logic signed [4:0] i_speed_signed;
 //assign output
 assign o_dac_data = o_dac_data_r;
 assign o_sram_addr = o_sram_addr_r[19:0];
 assign o_DSP_finished = wait_output_r;
-
+assign i_speed_signed[3:0] = i_speed; 
 //state
 always_comb begin
 	state_w = state_r;
@@ -176,7 +176,7 @@ always_comb begin
 					o_dac_data_w = i_sram_data;
 					o_dac_data_save_w = i_sram_data;
 				end
-				else o_dac_data_w = $signed(o_dac_data_r) + $signed(i_sram_data - o_dac_data_save_r) / $signed(i_speed);
+				else o_dac_data_w = $signed(o_dac_data_r) + $signed(i_sram_data - o_dac_data_save_r) / $signed(i_speed_signed);
 				//else o_dac_data_w = o_dac_data_r + ((i_sram_data - o_dac_data_save_r) / i_speed);
 			end
 		end
