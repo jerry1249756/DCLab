@@ -8,7 +8,7 @@ module DE2_115 (
 	output [8:0] LEDG,
 	output [17:0] LEDR,
 	input [3:0] KEY,
-	input [17:0] SW,
+	input [17:0] SW, //slide switches
 	output [6:0] HEX0,
 	output [6:0] HEX1,
 	output [6:0] HEX2,
@@ -177,7 +177,7 @@ Top top0(
 	.i_key_0(key0down),
 	.i_key_1(key1down),
 	.i_key_2(key2down),
-	// .i_speed(SW[3:0]), // design how user can decide mode on your own
+	.i_speed(SW[4:0]), // design how user can decide mode on your own
 	
 	// AudDSP and SRAM
 	.o_SRAM_ADDR(SRAM_ADDR), // [19:0]
