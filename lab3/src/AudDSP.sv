@@ -51,52 +51,94 @@ logic [2:0] slow_counter_r, slow_counter_w; // count the cycle for waiting in th
 logic wait_output_r, wait_output_w; // whether change back to IDLE state
 logic [2:0] save_state; // save state for pause
 logic signed [15:0] o_dac_data_save_r, o_dac_data_save_w; // save last data for calculating slow1
-logic signed [4:0] i_speed_signed;
+logic signed [4:0] i_speed_signed ;
 //assign output
 assign o_dac_data = o_dac_data_r;
 assign o_sram_addr = o_sram_addr_r[19:0];
 assign o_DSP_finished = wait_output_r;
 assign i_speed_signed[3:0] = i_speed; 
+assign i_speed_signed[4] = 0;
+
+logic start_flag_r, start_flag_w;
+logic pause1_flag_r, pause1_flag_w;
+logic pause2_flag_r, pause2_flag_w;
+logic stop_flag_r, stop_flag_w;
+
+always_comb begin
+	start_flag_w = start_flag_r;
+	pause1_flag_w = pause1_flag_r;
+	pause2_flag_w = pause2_flag_r;
+	stop_flag_w = stop_flag_r;
+	case(state_r)
+		S_IDLE: begin
+			pause1_flag_w = 0;
+			pause2_flag_w = 0;
+			stop_flag_w = 0;
+			if(i_start) start_flag_w = 1;
+		end
+		S_CAL_FAST, S_CAL_SLOW0, S_CAL_SLOW1: begin
+			pause2_flag_w = 0;
+			start_flag_w = 0;
+			if(i_stop) stop_flag_w = 1;
+			if(i_pause) pause1_flag_w = 1;
+		end
+		S_PAUSE: begin
+			start_flag_w = 0;
+			pause1_flag_w = 0;
+			if(i_stop) stop_flag_w = 1;
+			if(i_pause) pause2_flag_w = 1;
+		end
+		default begin
+			start_flag_w = start_flag_r;
+			pause1_flag_w = pause1_flag_r;
+			pause2_flag_w = pause2_flag_r;
+			stop_flag_w = stop_flag_r;
+		end
+	endcase
+end
+
 //state
 always_comb begin
 	state_w = state_r;
 	case(state_r)
 		S_IDLE: begin
-			if(i_start && i_fast == 1 && i_slow_0 == 0 && i_slow_1 == 0) state_w = S_CAL_FAST;
-			if(i_start && i_fast == 0 && i_slow_0 == 1 && i_slow_1 == 0) state_w = S_CAL_SLOW0;
-			if(i_start && i_fast == 0 && i_slow_0 == 0 && i_slow_1 == 1) state_w = S_CAL_SLOW1;
+			if(start_flag_r) begin
+				if(i_fast == 1 && i_slow_0 == 0 && i_slow_1 == 0) state_w = S_CAL_FAST;
+				if(i_fast == 0 && i_slow_0 == 1 && i_slow_1 == 0) state_w = S_CAL_SLOW0;
+				if(i_fast == 0 && i_slow_0 == 0 && i_slow_1 == 1) state_w = S_CAL_SLOW1;
+			end
 		end
 		S_CAL_FAST: begin
-			if(i_stop || wait_output_r) state_w = S_IDLE;
+			if(stop_flag_r || wait_output_r) state_w = S_IDLE;
 			else begin
-				if(i_pause) begin
+				if(pause1_flag_r) begin
 					save_state = S_CAL_FAST;
 					state_w = S_PAUSE;
 				end
 			end
 		end
 		S_CAL_SLOW0: begin
-			if(i_stop || wait_output_r) state_w = S_IDLE;
+			if(stop_flag_r || wait_output_r) state_w = S_IDLE;
 			else begin
-				if(i_pause) begin
+				if(pause1_flag_r) begin
 					save_state = S_CAL_SLOW0;
 					state_w = S_PAUSE;
 				end
 			end
 		end
 		S_CAL_SLOW1: begin
-			if(i_stop || wait_output_r) state_w = S_IDLE;
+			if(stop_flag_r || wait_output_r) state_w = S_IDLE;
 			else begin
-				if(i_pause) begin
+				if(pause1_flag_r) begin
 					save_state = S_CAL_SLOW1;
 					state_w = S_PAUSE;
 				end
 			end
 		end
 		S_PAUSE: begin
-			if(i_stop) state_w = S_IDLE;
+			if(stop_flag_r) state_w = S_IDLE;
 			else begin
-				if(i_pause) begin
+				if(pause2_flag_r) begin
 					state_w = save_state;
 				end
 			end
@@ -188,7 +230,7 @@ always_comb begin
 	if(wait_output_r) o_dac_data_w = 0;
 end
 
-always_ff @(posedge i_daclrck or posedge i_rst_n) begin
+always_ff @(posedge i_daclrck or negedge i_rst_n) begin
 	if (!i_rst_n) begin
 		state_r <= 0;
 		o_sram_addr_r <= 0;
@@ -204,6 +246,21 @@ always_ff @(posedge i_daclrck or posedge i_rst_n) begin
 		slow_counter_r <= slow_counter_w;
 		wait_output_r <= wait_output_w;
 		o_dac_data_save_r <= o_dac_data_save_w;
+	end
+end
+
+always_ff @(posedge i_clk or negedge i_rst_n) begin
+	if(!i_rst_n)begin
+		start_flag_r <= 0;
+		pause1_flag_r <= 0;
+		pause2_flag_r <= 0;
+		stop_flag_r <= 0;
+	end
+	else begin
+		start_flag_r <= start_flag_w;
+		pause1_flag_r <= pause1_flag_w;
+		pause2_flag_r <= pause2_flag_w;
+		stop_flag_r <= stop_flag_w;
 	end
 end
 
