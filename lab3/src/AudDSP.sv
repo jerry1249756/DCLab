@@ -208,13 +208,13 @@ always_comb begin
 		end
 		S_CAL_SLOW0: begin
 			if(o_sram_addr_r >= 1) begin
-				if(slow_counter_r == 0) o_dac_data_w = i_sram_data;
+				if(slow_counter_r == i_speed - 1) o_dac_data_w = i_sram_data;
 				else o_dac_data_w = o_dac_data_r;
 			end
 		end
 		S_CAL_SLOW1: begin
 			if(o_sram_addr_r >= 1) begin
-				if(slow_counter_r == 0) begin
+				if(slow_counter_r == i_speed - 1) begin
 					o_dac_data_w = i_sram_data;
 					o_dac_data_save_w = i_sram_data;
 				end
