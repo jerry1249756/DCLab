@@ -64,10 +64,17 @@ logic [3:0] state, state_nxt;
 logic [1:0] counter, counter_nxt;
 logic i2c_start, i2c_finish, i2c_oen, i2c_sdat;
 
+logic i_key_0_dly, i_key_1_dly, i_key_2_dly;
+logic key_0_posedge, key_1_posedge, key_2_posedge;
+
+assign key_0_posedge = i_key_0 & ~i_key_0_dly;
+assign key_1_posedge = i_key_1 & ~i_key_1_dly;
+assign key_2_posedge = i_key_2 & ~i_key_2_dly;
+
 logic rec_start, rec_pause, rec_stop, rec_finish;
-logic rec_start_nxt, rec_pause_nxt, rec_stop_nxt, rec_finish_nxt;
+// logic rec_start_nxt, rec_pause_nxt, rec_stop_nxt, rec_finish_nxt;
 logic play_start, play_pause, play_stop, play_finish;
-logic play_start_nxt, play_pause_nxt, play_stop_nxt, play_finish_nxt, play_enable_nxt;
+// logic play_start_nxt, play_pause_nxt, play_stop_nxt, play_finish_nxt, play_enable_nxt;
 
 logic play_enable, play_fast, slow_const, slow_linear;
 logic [3:0] play_speed;
@@ -77,6 +84,16 @@ logic [15:0] data_record, data_play, dac_data;
 
 assign i2c_start = (counter == 2'd3) ? 1'b1 : 1'b0;
 assign io_I2C_SDAT = (i2c_oen) ? i2c_sdat : 1'bz;
+
+assign rec_start  = ( state == S_AWAIT && key_0_posedge == 1'b1 ) ? 1'b1 : 1'b0;
+assign rec_pause  = ( (state == S_RECD || state == S_RECD_PAUSE) && key_0_posedge == 1'b1 ) ? 1'b1 : 1'b0;
+assign rec_stop   = ( (state == S_RECD || state == S_RECD_PAUSE) && key_2_posedge == 1'b1 ) ? 1'b1 : 1'b0;
+
+assign play_enable = ( state == S_PLAY ) ? 1'b1 : 1'b0;
+assign play_start = ( state == S_AWAIT && key_1_posedge == 1'b1 ) ? 1'b1 : 1'b0;
+assign play_pause = ( (state == S_PLAY || state == S_PLAY_PAUSE) && key_1_posedge == 1'b1 ) ? 1'b1 : 1'b0;
+assign play_stop  = ( (state == S_PLAY || state == S_PLAY_PAUSE) && key_2_posedge == 1'b1 ) ? 1'b1 : 1'b0;
+
 
 assign play_fast   = (i_speed[3] == 1'b1) ? 1'b1 : 1'b0;
 assign slow_const  = (i_speed[3] == 1'b0 && i_speed[4] == 1'b0) ? 1'b1 : 1'b0;
@@ -160,71 +177,71 @@ always_comb begin
 		S_IDLE: state_nxt = (counter == 2'd3) ? S_I2C : S_IDLE;
 		S_I2C: state_nxt = (i2c_finish == 1'b1) ? S_AWAIT : S_I2C;
 		S_AWAIT: begin
-			if (i_key_0 == 1'b1) state_nxt = S_RECD;
-			else if (i_key_1 == 1'b1) state_nxt = S_PLAY;
+			if (key_0_posedge == 1'b1) state_nxt = S_RECD;
+			else if (key_1_posedge == 1'b1) state_nxt = S_PLAY;
 			else state_nxt = S_AWAIT;
 		end
 		S_RECD: begin
-			if (i_key_0 == 1'b1) state_nxt = S_RECD_PAUSE;
+			if (key_0_posedge == 1'b1) state_nxt = S_RECD_PAUSE;
 			else if (rec_finish == 1'b1) state_nxt = S_AWAIT;
 			else state_nxt = S_RECD;
 		end
 		S_RECD_PAUSE: begin 
-			if(i_key_0 == 1'b1) state_nxt = S_RECD;
+			if(key_0_posedge == 1'b1) state_nxt = S_RECD;
 			else if (rec_finish == 1'b1) state_nxt = S_AWAIT;
 			else state_nxt = S_RECD_PAUSE;
 		end
 		S_PLAY: begin
-			if(i_key_1 == 1'b1) state_nxt = S_PLAY_PAUSE;
+			if(key_1_posedge == 1'b1) state_nxt = S_PLAY_PAUSE;
 			else if (play_finish == 1'b1) state_nxt = S_AWAIT;
 			else state_nxt = S_PLAY;
 		end
 		S_PLAY_PAUSE: begin
-			if(i_key_1 == 1'b1) state_nxt = S_PLAY_PAUSE;
+			if(key_1_posedge == 1'b1) state_nxt = S_PLAY;
 			else if (play_finish == 1'b1) state_nxt = S_AWAIT;
 			else state_nxt = S_PLAY;
 		end
 	endcase
 end
 
-always_comb begin
-	rec_start_nxt = 1'b0;
-	rec_pause_nxt = 1'b0;
-	rec_stop_nxt  = 1'b0;
-	play_enable_nxt = 1'b0;
-	play_start_nxt = 1'b0;
-	play_pause_nxt = 1'b0;
-	play_stop_nxt  = 1'b0;
-	case(state)
-		S_AWAIT: begin
-			if(i_key_0 == 1'b1) rec_start_nxt = 1'b1;
-			if(i_key_1 == 1'b1) play_start_nxt = 1'b1;
-		end
-		S_RECD, S_RECD_PAUSE: begin
-			if(i_key_0 == 1'b1) rec_pause_nxt = 1'b1;
-			if(i_key_2 == 1'b1) rec_stop_nxt  = 1'b1;
-		end
-		S_PLAY: begin
-			play_enable_nxt = 1'b1; 
-			if(i_key_1 == 1'b1) play_pause_nxt = 1'b1;
-			if(i_key_2 == 1'b1) play_stop_nxt  = 1'b1;
-		end
-		S_PLAY_PAUSE: begin
-			if(i_key_1 == 1'b1) play_pause_nxt = 1'b1;
-			if(i_key_2 == 1'b1) play_stop_nxt  = 1'b1;
-		end
+// always_comb begin
+// 	rec_start_nxt = 1'b0;
+// 	rec_pause_nxt = 1'b0;
+// 	rec_stop_nxt  = 1'b0;
+// 	play_enable_nxt = 1'b0;
+// 	play_start_nxt = 1'b0;
+// 	play_pause_nxt = 1'b0;
+// 	play_stop_nxt  = 1'b0;
+// 	case(state)
+// 		S_AWAIT: begin
+// 			if(i_key_0 == 1'b1) rec_start_nxt = 1'b1;
+// 			if(i_key_1 == 1'b1) play_start_nxt = 1'b1;
+// 		end
+// 		S_RECD, S_RECD_PAUSE: begin
+// 			if(i_key_0 == 1'b1) rec_pause_nxt = 1'b1;
+// 			if(i_key_2 == 1'b1) rec_stop_nxt  = 1'b1;
+// 		end
+// 		S_PLAY: begin
+// 			play_enable_nxt = 1'b1; 
+// 			if(i_key_1 == 1'b1) play_pause_nxt = 1'b1;
+// 			if(i_key_2 == 1'b1) play_stop_nxt  = 1'b1;
+// 		end
+// 		S_PLAY_PAUSE: begin
+// 			if(i_key_1 == 1'b1) play_pause_nxt = 1'b1;
+// 			if(i_key_2 == 1'b1) play_stop_nxt  = 1'b1;
+// 		end
 
-		default: begin
-			rec_start_nxt = 1'b0;
-			rec_pause_nxt = 1'b0;
-			rec_stop_nxt  = 1'b0;
-			play_enable_nxt = 1'b0;
-			play_start_nxt = 1'b0;
-			play_pause_nxt = 1'b0;
-			play_stop_nxt  = 1'b0;
-		end
-	endcase
-end
+// 		default: begin
+// 			rec_start_nxt = 1'b0;
+// 			rec_pause_nxt = 1'b0;
+// 			rec_stop_nxt  = 1'b0;
+// 			play_enable_nxt = 1'b0;
+// 			play_start_nxt = 1'b0;
+// 			play_pause_nxt = 1'b0;
+// 			play_stop_nxt  = 1'b0;
+// 		end
+// 	endcase
+// end
 
 
 always_comb begin
@@ -232,31 +249,19 @@ always_comb begin
 	case(state)
 		S_IDLE: counter_nxt = counter + 2'd1;
 		default: counter_nxt = 2'd0;
-		
 	endcase
 end
 always_ff @(posedge i_AUD_BCLK or posedge i_rst_n) begin
+	i_key_0_dly <= i_key_0;
+	i_key_1_dly <= i_key_1;
+	i_key_2_dly <= i_key_2;
 	if (!i_rst_n) begin
 		state <= S_IDLE;
 		counter <= 2'd0;
-		rec_start <= 1'b0;
-		rec_pause <= 1'b0;
-		rec_stop <= 1'b0;
-		play_enable <= 1'b0;
-		play_start <= 1'b0;
-		play_pause <= 1'b0;
-		play_stop <= 1'b0;
 	end
 	else begin
 		state <= state_nxt;
 		counter <= counter_nxt;
-		rec_start <= rec_start_nxt;
-		rec_pause <= rec_pause_nxt;
-		rec_stop <=	rec_stop_nxt;
-		play_enable <= play_enable_nxt;
-		play_start <= play_start_nxt;
-		play_pause <= play_pause_nxt;
-		play_stop <= play_stop_nxt;
 	end
 end
 

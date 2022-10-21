@@ -114,20 +114,20 @@ initial begin
 	@(negedge i_AUD_BCLK); 
 	#(BCLK_cycle*100);
 	i_key_0 = 1'b1;
-	#(BCLK_cycle*1);
+	#(BCLK_cycle*100);
 	i_key_0 = 1'b0;
 
 	#(BCLK_cycle*1000);
 	i_key_2 = 1'b1;
-	#(BCLK_cycle*1);
+	#(BCLK_cycle*100);
 	i_key_2 = 1'b0;
 
 	#(BCLK_cycle*100);
 	i_key_1 = 1'b1;
-	#(BCLK_cycle*1);
+	#(BCLK_cycle*100);
 	i_key_1 = 1'b0;
 
-	
+	#(BCLK_cycle*1000);
 	
 end
 
