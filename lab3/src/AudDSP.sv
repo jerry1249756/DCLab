@@ -163,7 +163,7 @@ always_comb begin
 		end
 		default o_sram_addr_w = o_sram_addr_r;
 	endcase
-	if(wait_output_r) o_sram_addr_w = 0;
+	if(stop_flag_r || wait_output_r) o_sram_addr_w = 0;
 end
 
 // slow_counter and wait_output
@@ -227,7 +227,7 @@ always_comb begin
 			o_dac_data_save_w = o_dac_data_save_r;
 		end
 	endcase
-	if(wait_output_r) o_dac_data_w = 0;
+	if(stop_flag_r || wait_output_r) o_dac_data_w = 0;
 end
 
 always_ff @(posedge i_daclrck or negedge i_rst_n) begin
