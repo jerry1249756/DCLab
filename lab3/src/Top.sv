@@ -199,7 +199,7 @@ always_comb begin
 		S_PLAY_PAUSE: begin
 			if(key_1_posedge == 1'b1) state_nxt = S_PLAY;
 			else if (play_finish == 1'b1) state_nxt = S_AWAIT;
-			else state_nxt = S_PLAY;
+			else state_nxt = S_PLAY_PAUSE;
 		end
 	endcase
 end
@@ -251,7 +251,7 @@ always_comb begin
 		default: counter_nxt = 2'd0;
 	endcase
 end
-always_ff @(posedge i_AUD_BCLK or posedge i_rst_n) begin
+always_ff @(posedge i_AUD_BCLK or negedge i_rst_n) begin
 	i_key_0_dly <= i_key_0;
 	i_key_1_dly <= i_key_1;
 	i_key_2_dly <= i_key_2;

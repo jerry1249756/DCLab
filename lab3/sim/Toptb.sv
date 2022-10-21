@@ -92,7 +92,7 @@ initial begin
 end
 
 initial begin	
-	#(BCLK_cycle*2000);
+	#(lr_cycle*1000);
 	$finish;
 end
 
@@ -112,22 +112,46 @@ initial begin
 
 	@(negedge i_AUD_BCLK); 
 	@(negedge i_AUD_BCLK); 
-	#(BCLK_cycle*100);
+
+	//start record
+	#(BCLK_cycle*100); 
 	i_key_0 = 1'b1;
 	#(BCLK_cycle*100);
 	i_key_0 = 1'b0;
 
-	#(BCLK_cycle*1000);
+	#(lr_cycle*100);
+	//#(lr_cycle*1000);
+	//stop record
 	i_key_2 = 1'b1;
 	#(BCLK_cycle*100);
 	i_key_2 = 1'b0;
 
+
+	
 	#(BCLK_cycle*100);
+	//start play 
 	i_key_1 = 1'b1;
 	#(BCLK_cycle*100);
 	i_key_1 = 1'b0;
 
 	#(BCLK_cycle*1000);
+	// pause the play 
+	i_key_1 = 1'b1;
+	#(BCLK_cycle*100);
+	i_key_1 = 1'b0;
+
+	#(BCLK_cycle*1000);
+	// continue play 
+	i_key_1 = 1'b1;
+	#(BCLK_cycle*100);
+	i_key_1 = 1'b0;
+
+	#(BCLK_cycle*1000);
+	//stop play
+	i_key_2 = 1'b1;
+	#(BCLK_cycle*100);
+	i_key_2 = 1'b0;
+
 	
 end
 
