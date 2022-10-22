@@ -30,7 +30,11 @@ module Top (
 	inout  i_AUD_ADCLRCK,
 	inout  i_AUD_BCLK,
 	inout  i_AUD_DACLRCK,
-	output o_AUD_DACDAT
+	output o_AUD_DACDAT,
+	
+	output [3:0] o_state,
+	output [19:0] o_addr_record
+
 
 	// SEVENDECODER (optional display)
 	// output [5:0] o_record_time,
@@ -51,25 +55,32 @@ module Top (
 );
 
 // design the FSM and states as you like
-localparam S_IDLE       = 0; //after entering IDLE state, do one I2C protocal
-localparam S_I2C        = 1;  
-localparam S_AWAIT      = 2;
-localparam S_RECD       = 3;
-localparam S_RECD_PAUSE = 4;
-localparam S_PLAY       = 5;
-localparam S_PLAY_PAUSE = 6;
+localparam S_IDLE       = 4'd0; //after entering IDLE state, do one I2C protocal
+localparam S_I2C        = 4'd1;  
+localparam S_AWAIT      = 4'd2;
+localparam S_RECD       = 4'd3;
+localparam S_RECD_PAUSE = 4'd4;
+localparam S_PLAY       = 4'd5;
+localparam S_PLAY_PAUSE = 4'd6;
 
 logic [3:0] state, state_nxt;
 
 logic [1:0] counter, counter_nxt;
 logic i2c_start, i2c_finish, i2c_oen, i2c_sdat;
 
-logic i_key_0_dly, i_key_1_dly, i_key_2_dly;
+
+
+logic [19:0] lr_counter_nxt, lr_counter;
+
+
+/*logic i_key_0_dly, i_key_1_dly, i_key_2_dly;
 logic key_0_posedge, key_1_posedge, key_2_posedge;
+
+
 
 assign key_0_posedge = i_key_0 & ~i_key_0_dly;
 assign key_1_posedge = i_key_1 & ~i_key_1_dly;
-assign key_2_posedge = i_key_2 & ~i_key_2_dly;
+assign key_2_posedge = i_key_2 & ~i_key_2_dly;*/
 
 logic rec_start, rec_pause, rec_stop, rec_finish;
 // logic rec_start_nxt, rec_pause_nxt, rec_stop_nxt, rec_finish_nxt;
@@ -82,23 +93,27 @@ logic [3:0] play_speed;
 logic [19:0] addr_record, addr_play;
 logic [15:0] data_record, data_play, dac_data;
 
-logic [20:0] aud_span_time_r, aud_span_time_w;
-logic [20:0] play_span_time_r, play_span_time_w;
-logic [23:0] processed_aud_span_time_r;
-logic [23:0] processed_play_span_time_r;
+logic [27:0] aud_span_time_r, aud_span_time_w;
+logic [27:0] play_span_time_r, play_span_time_w;
+logic [30:0] processed_aud_span_time_r;
+logic [30:0] processed_play_span_time_r;
+
+assign o_state = state;
+//assign o_addr_record = addr_record;
+assign o_addr_record = lr_counter;
 
 assign i2c_start = (counter == 2'd3) ? 1'b1 : 1'b0;
 assign io_I2C_SDAT = (i2c_oen) ? i2c_sdat : 1'bz;
 
-assign rec_start  = ( state == S_AWAIT && key_0_posedge == 1'b1 ) ? 1'b1 : 1'b0;
-assign rec_pause  = ( (state == S_RECD || state == S_RECD_PAUSE) && key_0_posedge == 1'b1 ) ? 1'b1 : 1'b0;
-assign rec_stop   = ( (state == S_RECD || state == S_RECD_PAUSE) && key_2_posedge == 1'b1 ) ? 1'b1 : 1'b0;
+assign rec_start  = ( state == S_AWAIT && i_key_0 == 1'b1 ) ? 1'b1 : 1'b0;
+assign rec_pause  = ( (state == S_RECD || state == S_RECD_PAUSE) && i_key_0 == 1'b1 && aud_span_time_r > 21'd10) ? 1'b1 : 1'b0;
+assign rec_stop   = ( (state == S_RECD || state == S_RECD_PAUSE) && i_key_2 == 1'b1 ) ? 1'b1 : 1'b0;
 
 assign play_enable = ( state == S_PLAY ) ? 1'b1 : 1'b0;
-assign play_start = ( state == S_AWAIT && key_1_posedge == 1'b1 ) ? 1'b1 : 1'b0;
-assign play_pause = ( (state == S_PLAY || state == S_PLAY_PAUSE) && key_1_posedge == 1'b1 ) ? 1'b1 : 1'b0;
-assign play_stop  = ( (state == S_PLAY || state == S_PLAY_PAUSE) && (key_2_posedge == 1'b1 || processed_play_span_time_r > processed_aud_span_time_r)) ? 1'b1 : 1'b0;
-
+assign play_start = ( state == S_AWAIT && i_key_1 == 1'b1 ) ? 1'b1 : 1'b0;
+assign play_pause = ( (state == S_PLAY || state == S_PLAY_PAUSE) && i_key_1 == 1'b1 ) ? 1'b1 : 1'b0;
+//assign play_stop  = ( (state == S_PLAY || state == S_PLAY_PAUSE) && (i_key_2 == 1'b1 ) ) ? 1'b1 : 1'b0;
+assign play_stop  = ( (state == S_PLAY || state == S_PLAY_PAUSE) && (i_key_2 == 1'b1 || processed_play_span_time_r > processed_aud_span_time_r)) ? 1'b1 : 1'b0;
 
 assign play_fast   = (i_speed[3] == 1'b1) ? 1'b1 : 1'b0;
 assign slow_const  = (i_speed[3] == 1'b0 && i_speed[4] == 1'b0) ? 1'b1 : 1'b0;
@@ -135,7 +150,7 @@ I2cInitializer init0(
 // in other words, determine which data addr to be fetch for player 
 AudDSP dsp0(
 	.i_rst_n(i_rst_n),
-	.i_clk(i_AUD_BCLK),
+	.i_clk(i_clk), //change!
 	.i_start(play_start),
 	.i_pause(play_pause),
 	.i_stop(play_stop),
@@ -164,6 +179,7 @@ AudPlayer player0(
 // === AudRecorder ===
 // receive data from WM8731 with I2S protocal and save to SRAM
 AudRecorder recorder0(
+	.i_fast_clk(i_clk),
 	.i_rst_n(i_rst_n), 
 	.i_clk(i_AUD_BCLK),
 	.i_lrc(i_AUD_ADCLRCK),
@@ -176,33 +192,35 @@ AudRecorder recorder0(
 	.o_data(data_record)
 );   
 
+
 always_comb begin
 	// FSM
 	case(state)
 		S_IDLE: state_nxt = (counter == 2'd3) ? S_I2C : S_IDLE;
 		S_I2C: state_nxt = (i2c_finish == 1'b1) ? S_AWAIT : S_I2C;
 		S_AWAIT: begin
-			if (key_0_posedge == 1'b1) state_nxt = S_RECD;
-			else if (key_1_posedge == 1'b1) state_nxt = S_PLAY;
+			if (i_key_0 == 1'b1) state_nxt = S_RECD;
+			else if (i_key_1 == 1'b1) state_nxt = S_PLAY;
 			else state_nxt = S_AWAIT;
 		end
 		S_RECD: begin
-			if (key_0_posedge == 1'b1) state_nxt = S_RECD_PAUSE;
+			if (i_key_0 == 1'b1) state_nxt = S_RECD_PAUSE;
 			else if (rec_finish == 1'b1) state_nxt = S_AWAIT;
 			else state_nxt = S_RECD;
 		end
 		S_RECD_PAUSE: begin 
-			if(key_0_posedge == 1'b1) state_nxt = S_RECD;
+			if(i_key_0 == 1'b1) state_nxt = S_RECD;
 			else if (rec_finish == 1'b1) state_nxt = S_AWAIT;
 			else state_nxt = S_RECD_PAUSE;
 		end
 		S_PLAY: begin
-			if(key_1_posedge == 1'b1) state_nxt = S_PLAY_PAUSE;
+			if(i_key_1 == 1'b1) state_nxt = S_PLAY_PAUSE;
+			//else if (play_finish == 1'b1) state_nxt = S_AWAIT;
 			else if (play_finish == 1'b1 || processed_play_span_time_r > processed_aud_span_time_r) state_nxt = S_AWAIT;
 			else state_nxt = S_PLAY;
 		end
 		S_PLAY_PAUSE: begin
-			if(key_1_posedge == 1'b1) state_nxt = S_PLAY;
+			if(i_key_1 == 1'b1) state_nxt = S_PLAY;
 			else if (play_finish == 1'b1) state_nxt = S_AWAIT;
 			else state_nxt = S_PLAY_PAUSE;
 		end
@@ -213,36 +231,36 @@ end
 always_comb begin
 	case(state)
 		S_IDLE: begin 
-			aud_span_time_w = 21'b0;
-			play_span_time_w = 21'b0;
+			aud_span_time_w = 28'b0;
+			play_span_time_w = 28'b0;
 		end
 		S_I2C: begin
-			aud_span_time_w = 21'b0;
-			play_span_time_w = 21'b0;
+			aud_span_time_w = 28'b0;
+			play_span_time_w = 28'b0;
 		end
 		S_AWAIT: begin
 			aud_span_time_w = aud_span_time_r;
-			play_span_time_w = 21'b0;
+			play_span_time_w = 28'b0;
 		end
 		S_RECD: begin
-			aud_span_time_w = aud_span_time_r + 21'b1;
-			play_span_time_w = 21'b0;
+			aud_span_time_w = aud_span_time_r + 28'b1;
+			play_span_time_w = 28'b0;
 		end
 		S_RECD_PAUSE: begin 
 			aud_span_time_w = aud_span_time_r;
-			play_span_time_w = 21'b0;
+			play_span_time_w = 28'b0;
 		end
 		S_PLAY: begin
 			aud_span_time_w = aud_span_time_r;
-			play_span_time_w = play_span_time_r + 21'b1;
+			play_span_time_w = play_span_time_r + 28'b1;
 		end
 		S_PLAY_PAUSE: begin
 			aud_span_time_w = aud_span_time_r;
 			play_span_time_w = play_span_time_r;
 		end
 		default : begin
-			aud_span_time_w = 21'b0;
-			play_span_time_w = 21'b0;
+			aud_span_time_w = 28'b0;
+			play_span_time_w = 28'b0;
 		end
 	endcase
 end
@@ -265,6 +283,8 @@ always_comb begin
 		end
 	endcase
 end
+
+
 // always_comb begin
 // 	rec_start_nxt = 1'b0;
 // 	rec_pause_nxt = 1'b0;
@@ -308,19 +328,31 @@ end
 always_comb begin
 	// counter
 	case(state)
-		S_IDLE: counter_nxt = counter + 2'd1;
+		S_IDLE: begin
+			if(counter != 2'd3) counter_nxt = counter + 2'd1;
+			else counter_nxt = counter;
+		end
+		S_I2C: counter_nxt = 2'd3;
 		default: counter_nxt = 2'd0;
 	endcase
 end
-always_ff @(posedge i_AUD_BCLK or negedge i_rst_n) begin
-	i_key_0_dly <= i_key_0;
+
+
+always_comb begin
+	if(state == S_RECD) lr_counter_nxt = lr_counter + 1;
+	else if (state == S_RECD_PAUSE) lr_counter_nxt = lr_counter;
+	else lr_counter_nxt = 0;
+end
+
+always_ff @(posedge i_clk or negedge i_rst_n) begin
+	/*i_key_0_dly <= i_key_0;
 	i_key_1_dly <= i_key_1;
-	i_key_2_dly <= i_key_2;
+	i_key_2_dly <= i_key_2;*/
 	if (!i_rst_n) begin
 		state <= S_IDLE;
 		counter <= 2'd0;
-		aud_span_time_r = 21'b0;
-		play_span_time_r <= 21'b0;
+		aud_span_time_r = 28'b0;
+		play_span_time_r <= 28'b0;
 	end
 	else begin
 		state <= state_nxt;
@@ -329,5 +361,20 @@ always_ff @(posedge i_AUD_BCLK or negedge i_rst_n) begin
 		play_span_time_r <= play_span_time_w;
 	end
 end
+
+
+always_ff @(posedge i_AUD_ADCLRCK or negedge i_rst_n) begin
+	/*i_key_0_dly <= i_key_0;
+	i_key_1_dly <= i_key_1;
+	i_key_2_dly <= i_key_2;*/
+	if (!i_rst_n) begin
+		lr_counter <= 0;
+	end
+	else begin
+		lr_counter <= lr_counter_nxt;
+	end
+end
+
+
 
 endmodule

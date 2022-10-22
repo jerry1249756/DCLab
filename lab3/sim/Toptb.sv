@@ -1,10 +1,11 @@
-`timescale 1us/1us
+`timescale 1ns/100ps
 
 module Lab3_Top_test;
 
-parameter	BCLK_cycle = 10.0; //10k HZ TOP
-parameter	hundredk_cycle = 10.0; //12M HZ DAC ADC 
-parameter	lr_cycle = 400.0;
+parameter	BCLK_cycle = 651.0; //10k HZ TOP
+parameter	hundredk_cycle = 10000.0; //12M HZ DAC ADC 
+parameter	lr_cycle = BCLK_cycle*160;
+parameter	i_clk_cycle = 83.0;
 
 logic i_rst_n, i_clk, i_key_0, i_key_1, i_key_2;
 logic [4:0]  i_speed; 
@@ -22,6 +23,7 @@ assign i2c_write = (io_I2C_SDAT == 1'bz)? 1'b0 : 1'b1;
 assign sram_write = (io_SRAM_DQ == 16'bz)? 1'b0 : 1'b1;
 */
 initial i_clk = 0;
+always #(i_clk_cycle/2.0) i_clk = ~i_clk;
 
 initial i_AUD_BCLK_r = 0;
 always #(BCLK_cycle/2.0) i_AUD_BCLK_r = ~i_AUD_BCLK_r;
@@ -92,7 +94,7 @@ initial begin
 end
 
 initial begin	
-	#(lr_cycle*2000);
+	#(i_clk_cycle*100000);
 	$finish;
 end
 
@@ -102,87 +104,66 @@ initial begin
 	i_key_0 = 1'b0;
 	i_key_2 = 1'b0;
 	i_key_1 = 1'b0;
-	@(negedge i_AUD_BCLK); 
-	@(negedge i_AUD_BCLK); 
-	@(negedge i_AUD_BCLK); 
-	@(negedge i_AUD_BCLK); 
+	@(negedge i_clk); 
+	@(negedge i_clk); 
+	@(negedge i_clk); 
+	@(negedge i_clk); 
 	i_rst_n = 1'b0;
-	#(BCLK_cycle*2);
+	#(i_clk_cycle*1);
 	i_rst_n = 1'b1;
-
-	#(lr_cycle*10);
-	i_rst_n = 1'b0;
-	#(BCLK_cycle*2);
-	i_rst_n = 1'b1;
-
-	@(negedge i_AUD_BCLK); 
-	@(negedge i_AUD_BCLK); 
-
 	//start record
-	#(BCLK_cycle*100); 
+	#(i_clk_cycle*10000); 
 	i_key_0 = 1'b1;
-	#(BCLK_cycle*100);
+	#(i_clk_cycle*1);
 	i_key_0 = 1'b0;
 
-	#(lr_cycle*100);
+	#(i_clk_cycle*10000);
 
 	//pause record
 	i_key_0 = 1'b1;
-	#(BCLK_cycle*50);
+	#(i_clk_cycle*1);
 	i_key_0 = 1'b0;
 
-	#(BCLK_cycle*150);
+	#(i_clk_cycle*5000);
 
 	i_key_0 = 1'b1;
-	#(BCLK_cycle*50);
+	#(i_clk_cycle*1);
 	i_key_0 = 1'b0;
 
-	#(lr_cycle*100);
+	#(i_clk_cycle*20000);
+	/*
 	//stop record
 	i_key_2 = 1'b1;
-	#(BCLK_cycle*100);
+	#(i_clk_cycle*1);
 	i_key_2 = 1'b0;
-
-
-	
-	#(BCLK_cycle*100);
+	*/
+	#(i_clk_cycle*10000);
 	//start play 
 	i_key_1 = 1'b1;
-	#(BCLK_cycle*100);
+	#(i_clk_cycle*1);
 	i_key_1 = 1'b0;
 
-	#(BCLK_cycle*1000);
-	//stop record
-	i_key_2 = 1'b1;
-	#(BCLK_cycle*100);
-	i_key_2 = 1'b0;
+	#(i_clk_cycle*12000);
 
-
-	
-	#(BCLK_cycle*100);
-	//start play 
+	//pause play
 	i_key_1 = 1'b1;
-	#(BCLK_cycle*100);
+	#(i_clk_cycle*1);
 	i_key_1 = 1'b0;
 
-	#(BCLK_cycle*1000);
-	// pause the play 
+	#(i_clk_cycle*2000);
+
+	//continue play
 	i_key_1 = 1'b1;
-	#(BCLK_cycle*100);
+	#(i_clk_cycle*1);
 	i_key_1 = 1'b0;
 
-	#(BCLK_cycle*1000);
-	// continue play 
-	i_key_1 = 1'b1;
-	#(BCLK_cycle*100);
-	i_key_1 = 1'b0;
+	#(i_clk_cycle*5000);
 
-	#(BCLK_cycle*1000);
-	//stop play
-	i_key_2 = 1'b1;
-	#(BCLK_cycle*100);
-	i_key_2 = 1'b0;
-	
+	//stop play 
+	//i_key_2 = 1'b1;
+	//#(i_clk_cycle*1);
+	//i_key_2 = 1'b0;
+
 end
 
 always @(*) begin
@@ -196,7 +177,7 @@ always @(*) begin
 end
 
 initial begin 
-	i_speed = 5'b10110;
+	i_speed = 5'b01001;
 end
 
 endmodule

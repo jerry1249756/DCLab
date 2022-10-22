@@ -13,7 +13,7 @@ parameter S_IDLE = 2'd0;
 parameter S_PLAY = 2'd1;
 
 logic [1:0] state_r, state_w; 
-logic [4:0] counter_r, counter_w; 
+logic [15:0] counter_r, counter_w; 
 
 logic [15:0] reg_dac_data_r, reg_dac_data_w;
 
@@ -59,7 +59,7 @@ always_comb begin
 			counter_w = 0;
 		end
 		S_PLAY : begin
-			counter_w = counter_r + 5'd1;
+			counter_w = counter_r + 16'd1;
 		end
 		default : begin
 			counter_w = counter_r;
@@ -73,7 +73,7 @@ always_comb begin
 			aud_dacdat_w = 1'b0;
 		end
 		S_PLAY : begin
-			if(counter_r < 5'd16) aud_dacdat_w = reg_dac_data_r[5'd15 - counter_r];
+			if(counter_r < 16'd16) aud_dacdat_w = reg_dac_data_r[16'd15 - counter_r];
 			else aud_dacdat_w = 1'b0;
 		end
 		default : begin
@@ -85,7 +85,7 @@ end
 always_ff @(posedge i_bclk or negedge i_rst_n) begin
 	if (!i_rst_n) begin
 		 state_r <= S_IDLE;
-		 counter_r <= 5'd0;
+		 counter_r <= 16'd0;
 		 reg_dac_data_r <= 16'b0;
 	end
 	else begin

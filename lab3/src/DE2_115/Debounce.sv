@@ -14,7 +14,7 @@ logic o_debounced_r, o_debounced_w;
 logic [CNT_BIT-1:0] counter_r, counter_w;
 logic neg_r, neg_w, pos_r, pos_w;
 
-assign o_debounced = o_debounced_r;
+assign o_debounced = ~ o_debounced_r;
 assign o_pos = pos_r;
 assign o_neg = neg_r;
 

@@ -59,7 +59,7 @@ logic signed [4:0] i_speed_signed ;
 //assign output
 assign o_dac_data = o_dac_data_r[15:0];
 assign o_sram_addr = o_sram_addr_r[19:0];
-assign o_DSP_finished = wait_output_r;
+assign o_DSP_finished = (wait_output_r || i_stop);
 assign i_speed_signed[3:0] = i_speed; 
 assign i_speed_signed[4] = 0;
 
@@ -246,7 +246,6 @@ always_ff @(posedge i_daclrck or negedge i_rst_n) begin
 		slow_counter_r <= 0;
 		wait_output_r <= 0;
 		o_dac_data_save_r <= 0;
-		save_state_r <= 0;
 	end
 	else begin
 		state_r <= state_w;
@@ -255,7 +254,6 @@ always_ff @(posedge i_daclrck or negedge i_rst_n) begin
 		slow_counter_r <= slow_counter_w;
 		wait_output_r <= wait_output_w;
 		o_dac_data_save_r <= o_dac_data_save_w;
-		save_state_r <= save_state_w;
 	end
 end
 
@@ -265,12 +263,14 @@ always_ff @(posedge i_clk or negedge i_rst_n) begin
 		pause1_flag_r <= 0;
 		pause2_flag_r <= 0;
 		stop_flag_r <= 0;
+		save_state_r <= 0;
 	end
 	else begin
 		start_flag_r <= start_flag_w;
 		pause1_flag_r <= pause1_flag_w;
 		pause2_flag_r <= pause2_flag_w;
 		stop_flag_r <= stop_flag_w;
+		save_state_r <= save_state_w;
 	end
 end
 
