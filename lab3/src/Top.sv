@@ -82,6 +82,11 @@ logic [3:0] play_speed;
 logic [19:0] addr_record, addr_play;
 logic [15:0] data_record, data_play, dac_data;
 
+logic [20:0] aud_span_time_r, aud_span_time_w;
+logic [20:0] play_span_time_r, play_span_time_w;
+logic [23:0] processed_aud_span_time_r;
+logic [23:0] processed_play_span_time_r;
+
 assign i2c_start = (counter == 2'd3) ? 1'b1 : 1'b0;
 assign io_I2C_SDAT = (i2c_oen) ? i2c_sdat : 1'bz;
 
@@ -92,7 +97,7 @@ assign rec_stop   = ( (state == S_RECD || state == S_RECD_PAUSE) && key_2_posedg
 assign play_enable = ( state == S_PLAY ) ? 1'b1 : 1'b0;
 assign play_start = ( state == S_AWAIT && key_1_posedge == 1'b1 ) ? 1'b1 : 1'b0;
 assign play_pause = ( (state == S_PLAY || state == S_PLAY_PAUSE) && key_1_posedge == 1'b1 ) ? 1'b1 : 1'b0;
-assign play_stop  = ( (state == S_PLAY || state == S_PLAY_PAUSE) && key_2_posedge == 1'b1 ) ? 1'b1 : 1'b0;
+assign play_stop  = ( (state == S_PLAY || state == S_PLAY_PAUSE) && (key_2_posedge == 1'b1 || processed_play_span_time_r > processed_aud_span_time_r)) ? 1'b1 : 1'b0;
 
 
 assign play_fast   = (i_speed[3] == 1'b1) ? 1'b1 : 1'b0;
@@ -193,7 +198,7 @@ always_comb begin
 		end
 		S_PLAY: begin
 			if(key_1_posedge == 1'b1) state_nxt = S_PLAY_PAUSE;
-			else if (play_finish == 1'b1) state_nxt = S_AWAIT;
+			else if (play_finish == 1'b1 || processed_play_span_time_r > processed_aud_span_time_r) state_nxt = S_AWAIT;
 			else state_nxt = S_PLAY;
 		end
 		S_PLAY_PAUSE: begin
@@ -204,6 +209,62 @@ always_comb begin
 	endcase
 end
 
+//rec time and play time
+always_comb begin
+	case(state)
+		S_IDLE: begin 
+			aud_span_time_w = 21'b0;
+			play_span_time_w = 21'b0;
+		end
+		S_I2C: begin
+			aud_span_time_w = 21'b0;
+			play_span_time_w = 21'b0;
+		end
+		S_AWAIT: begin
+			aud_span_time_w = aud_span_time_r;
+			play_span_time_w = 21'b0;
+		end
+		S_RECD: begin
+			aud_span_time_w = aud_span_time_r + 21'b1;
+			play_span_time_w = 21'b0;
+		end
+		S_RECD_PAUSE: begin 
+			aud_span_time_w = aud_span_time_r;
+			play_span_time_w = 21'b0;
+		end
+		S_PLAY: begin
+			aud_span_time_w = aud_span_time_r;
+			play_span_time_w = play_span_time_r + 21'b1;
+		end
+		S_PLAY_PAUSE: begin
+			aud_span_time_w = aud_span_time_r;
+			play_span_time_w = play_span_time_r;
+		end
+		default : begin
+			aud_span_time_w = 21'b0;
+			play_span_time_w = 21'b0;
+		end
+	endcase
+end
+
+always_comb begin
+	processed_aud_span_time_r = aud_span_time_r;
+	processed_play_span_time_r = play_span_time_r;
+	case(i_speed[3])
+		1'b1 : begin
+			processed_aud_span_time_r = aud_span_time_r;
+			processed_play_span_time_r = play_span_time_r * (play_speed);
+		end
+		1'b0 : begin
+			processed_aud_span_time_r = aud_span_time_r * (play_speed);
+			processed_play_span_time_r = play_span_time_r;
+		end
+		default : begin
+			processed_aud_span_time_r = aud_span_time_r;
+			processed_play_span_time_r = play_span_time_r;
+		end
+	endcase
+end
 // always_comb begin
 // 	rec_start_nxt = 1'b0;
 // 	rec_pause_nxt = 1'b0;
@@ -258,10 +319,14 @@ always_ff @(posedge i_AUD_BCLK or negedge i_rst_n) begin
 	if (!i_rst_n) begin
 		state <= S_IDLE;
 		counter <= 2'd0;
+		aud_span_time_r = 21'b0;
+		play_span_time_r <= 21'b0;
 	end
 	else begin
 		state <= state_nxt;
 		counter <= counter_nxt;
+		aud_span_time_r <= aud_span_time_w;
+		play_span_time_r <= play_span_time_w;
 	end
 end
 

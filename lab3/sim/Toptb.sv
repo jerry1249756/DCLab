@@ -92,7 +92,7 @@ initial begin
 end
 
 initial begin	
-	#(lr_cycle*1000);
+	#(lr_cycle*2000);
 	$finish;
 end
 
@@ -120,7 +120,19 @@ initial begin
 	i_key_0 = 1'b0;
 
 	#(lr_cycle*100);
-	//#(lr_cycle*1000);
+
+	//pause record
+	i_key_0 = 1'b1;
+	#(BCLK_cycle*50);
+	i_key_0 = 1'b0;
+
+	#(BCLK_cycle*150);
+
+	i_key_0 = 1'b1;
+	#(BCLK_cycle*50);
+	i_key_0 = 1'b0;
+
+	#(lr_cycle*100);
 	//stop record
 	i_key_2 = 1'b1;
 	#(BCLK_cycle*100);
@@ -146,12 +158,86 @@ initial begin
 	#(BCLK_cycle*100);
 	i_key_1 = 1'b0;
 
-	#(BCLK_cycle*1000);
-	//stop play
+	#(lr_cycle*2000);
+	
+	
+	//play again 
+	i_key_1 = 1'b1;
+	#(BCLK_cycle*100);
+	i_key_1 = 1'b0;
+
+	#(lr_cycle*2000);
+
+	/////////////////////////////////////////////reset then rec and play
+
+	i_rst_n = 1'b1;
+	i_key_0 = 1'b0;
+	i_key_2 = 1'b0;
+	i_key_1 = 1'b0;
+	@(negedge i_AUD_BCLK); 
+	@(negedge i_AUD_BCLK); 
+	@(negedge i_AUD_BCLK); 
+	@(negedge i_AUD_BCLK); 
+	i_rst_n = 1'b0;
+	#(BCLK_cycle*2);
+	i_rst_n = 1'b1;
+
+	@(negedge i_AUD_BCLK); 
+	@(negedge i_AUD_BCLK); 
+
+	//start record
+	#(BCLK_cycle*100); 
+	i_key_0 = 1'b1;
+	#(BCLK_cycle*100);
+	i_key_0 = 1'b0;
+
+	#(lr_cycle*50);
+
+	//pause record
+	i_key_0 = 1'b1;
+	#(BCLK_cycle*50);
+	i_key_0 = 1'b0;
+
+	#(BCLK_cycle*150);
+
+	//comtinue record
+	i_key_0 = 1'b1;
+	#(BCLK_cycle*50);
+	i_key_0 = 1'b0;
+
+	#(lr_cycle*50);
+	//stop record
 	i_key_2 = 1'b1;
 	#(BCLK_cycle*100);
 	i_key_2 = 1'b0;
 
+
+	
+	#(BCLK_cycle*100);
+	//start play 
+	i_key_1 = 1'b1;
+	#(BCLK_cycle*100);
+	i_key_1 = 1'b0;
+
+	#(BCLK_cycle*1000);
+	// pause the play 
+	i_key_1 = 1'b1;
+	#(BCLK_cycle*100);
+	i_key_1 = 1'b0;
+
+	#(BCLK_cycle*1000);
+	// continue play 
+	i_key_1 = 1'b1;
+	#(BCLK_cycle*100);
+	i_key_1 = 1'b0;
+
+	#(BCLK_cycle*10000);
+	
+	
+	//play again 
+	i_key_1 = 1'b1;
+	#(BCLK_cycle*100);
+	i_key_1 = 1'b0;
 	
 end
 
@@ -166,7 +252,7 @@ always @(*) begin
 end
 
 initial begin 
-	i_speed = 5'b01000;
+	i_speed = 5'b10001;
 end
 
 endmodule
