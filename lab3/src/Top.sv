@@ -312,7 +312,7 @@ always_comb begin
 		default: counter_nxt = 2'd0;
 	endcase
 end
-always_ff @(posedge i_AUD_BCLK or negedge i_rst_n) begin
+always_ff @(posedge i_clk or negedge i_rst_n) begin
 	i_key_0_dly <= i_key_0;
 	i_key_1_dly <= i_key_1;
 	i_key_2_dly <= i_key_2;
