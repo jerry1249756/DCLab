@@ -2,10 +2,17 @@
 
 module Lab3_Top_test;
 
+<<<<<<< HEAD
 parameter	BCLK_cycle = 651.0; //10k HZ TOP
 parameter	hundredk_cycle = 10000.0; //12M HZ DAC ADC 
 parameter	lr_cycle = BCLK_cycle*160;
 parameter	i_clk_cycle = 83.0;
+=======
+parameter	BCLK_cycle = 10.0; //10k HZ TOP
+parameter	hundredk_cycle = 10.0; //12M HZ DAC ADC 
+parameter	lr_cycle = 400.0;
+parameter	i_clk_cycle = 10.0;
+>>>>>>> 8b5fe5b580ec10c02ba6a1eb7d910bd574e80395
 
 logic i_rst_n, i_clk, i_key_0, i_key_1, i_key_2;
 logic [4:0]  i_speed; 
