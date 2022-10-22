@@ -110,6 +110,11 @@ initial begin
 	#(BCLK_cycle*2);
 	i_rst_n = 1'b1;
 
+	#(lr_cycle*10);
+	i_rst_n = 1'b0;
+	#(BCLK_cycle*2);
+	i_rst_n = 1'b1;
+
 	@(negedge i_AUD_BCLK); 
 	@(negedge i_AUD_BCLK); 
 
