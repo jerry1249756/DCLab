@@ -252,7 +252,7 @@ always @(*) begin
 end
 
 initial begin 
-	i_speed = 5'b10001;
+	i_speed = 5'b10110;
 end
 
 endmodule
