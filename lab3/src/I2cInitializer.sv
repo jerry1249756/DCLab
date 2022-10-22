@@ -19,10 +19,12 @@ module I2cInitializer(
 	logic [1:0] state, state_nxt;
 	logic [3:0] counter, counter_nxt;
 	logic [4:0] data_counter, data_counter_nxt;
+	logic o_oen_slow, o_oen_reg;
 	
 	assign o_sdat = SDA;
 	assign o_sclk = SCL;
-	assign o_oen = (counter == 4'd9) ? 1'd0 : 1'd1;
+	assign o_oen = o_oen_reg;
+	assign o_oen_slow = (counter == 4'd9 && data_counter < 5'd20) ? 1'd0 : 1'd1;
 	assign o_finished = (state == S_FINAL) ? 1'b1 : 1'b0;
 	
 	always_comb begin
@@ -31,7 +33,7 @@ module I2cInitializer(
 				state_nxt = (i_start == 1'd1) ? S_SEND : S_IDLE;
 			end
 			S_SEND: begin
-				state_nxt = (data_counter == 5'd0 && counter == 4'd9)? S_FINAL : S_SEND;
+				state_nxt = (data_counter == 5'd0 && counter == 4'd1)? S_FINAL : S_SEND;
 			end
 			S_FINAL: begin 
 				state_nxt = S_IDLE;
@@ -79,20 +81,28 @@ module I2cInitializer(
 		// reset
 		if (!i_rst_n) begin
 			state <= S_IDLE;
-			SDA <= 1'd1;
 			SCL <= 1'd1;
+		end
+		else begin
+			state <= state_nxt;
+			SCL <= SCL_nxt;
+		end
+	end
+
+	always_ff @(negedge i_clk or negedge i_rst_n) begin
+		o_oen_reg <= o_oen_slow;
+		// reset
+		if (!i_rst_n) begin
+			SDA <= 1'd1;
 			counter <= 4'd0;
 			data_counter <= 5'd24;
 		end
 		else begin
-			state <= state_nxt;
 			SDA <= SDA_nxt;
-			SCL <= SCL_nxt;
 			counter <= counter_nxt;
 			data_counter <= data_counter_nxt;
 		end
 	end
-
 	
 
 

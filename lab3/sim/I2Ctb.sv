@@ -39,8 +39,7 @@ initial begin
 	@(negedge i_clk);
 	@(negedge i_clk) i_rst_n = 0;
 	@(negedge i_clk) i_rst_n = 1; 
-
-
+	@(negedge i_clk);
 	@(negedge i_clk);
 	@(negedge i_clk);
 	@(negedge i_clk) i_start = 1;
@@ -50,6 +49,12 @@ initial begin
 	@(negedge i_clk);
 	@(negedge i_clk) i_rst_n = 0;
 	@(negedge i_clk) i_rst_n = 1; 
+	@(negedge i_clk);
+	@(negedge i_clk);
+	@(negedge i_clk);
+	@(negedge i_clk) i_start = 1;
+	@(negedge i_clk) i_start = 0;
+	#(cycle*60);
 
 	$finish;
 end
