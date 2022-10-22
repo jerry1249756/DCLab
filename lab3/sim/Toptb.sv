@@ -5,6 +5,7 @@ module Lab3_Top_test;
 parameter	BCLK_cycle = 10.0; //10k HZ TOP
 parameter	hundredk_cycle = 10.0; //12M HZ DAC ADC 
 parameter	lr_cycle = 400.0;
+parameter	i_clk_cycle = 10.0;
 
 logic i_rst_n, i_clk, i_key_0, i_key_1, i_key_2;
 logic [4:0]  i_speed; 
@@ -22,6 +23,7 @@ assign i2c_write = (io_I2C_SDAT == 1'bz)? 1'b0 : 1'b1;
 assign sram_write = (io_SRAM_DQ == 16'bz)? 1'b0 : 1'b1;
 */
 initial i_clk = 0;
+always #(i_clk_cycle/2.0) i_clk = ~i_clk;
 
 initial i_AUD_BCLK_r = 0;
 always #(BCLK_cycle/2.0) i_AUD_BCLK_r = ~i_AUD_BCLK_r;
