@@ -2,7 +2,6 @@
 *.history
 *.conf
 *.fsdb
-*.rc
 *.qpf
 *.qsf
 *.bak
