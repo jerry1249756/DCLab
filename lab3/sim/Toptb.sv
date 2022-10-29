@@ -2,17 +2,10 @@
 
 module Lab3_Top_test;
 
-<<<<<<< HEAD
 parameter	BCLK_cycle = 651.0; //10k HZ TOP
 parameter	hundredk_cycle = 10000.0; //12M HZ DAC ADC 
 parameter	lr_cycle = BCLK_cycle*160;
 parameter	i_clk_cycle = 83.0;
-=======
-parameter	BCLK_cycle = 10.0; //10k HZ TOP
-parameter	hundredk_cycle = 10.0; //12M HZ DAC ADC 
-parameter	lr_cycle = 400.0;
-parameter	i_clk_cycle = 10.0;
->>>>>>> 8b5fe5b580ec10c02ba6a1eb7d910bd574e80395
 
 logic i_rst_n, i_clk, i_key_0, i_key_1, i_key_2;
 logic [4:0]  i_speed; 
@@ -53,6 +46,9 @@ logic SRAM_write;
 logic [19:0] SRAM_address;
 logic [15:0] SRAM_data_r;
 
+logic [3:0] state;
+logic [19:0] addr_record;
+
 //wire [15:0] SRAM_data;
 
 //reg [15:0] SRAM_data_get;
@@ -85,7 +81,9 @@ Top Top0(
 	.i_AUD_ADCLRCK(i_AUD_ADCLRCK), //IO
 	.i_AUD_BCLK(i_AUD_BCLK), //IO
 	.i_AUD_DACLRCK(i_AUD_DACLRCK), //IO
-	.o_AUD_DACDAT(o_AUD_DACDAT)
+	.o_AUD_DACDAT(o_AUD_DACDAT),
+	.o_state(state),
+	.o_addr_record(addr_record)
 );
 
 SRAM SRAM0(
@@ -101,7 +99,7 @@ initial begin
 end
 
 initial begin	
-	#(i_clk_cycle*100000);
+	#(i_clk_cycle*5000000);
 	$finish;
 end
 
@@ -119,15 +117,16 @@ initial begin
 	#(i_clk_cycle*1);
 	i_rst_n = 1'b1;
 	//start record
-	#(i_clk_cycle*10000); 
+	#(i_clk_cycle*100000); 
+
 	i_key_0 = 1'b1;
 	#(i_clk_cycle*1);
 	i_key_0 = 1'b0;
 
-	#(i_clk_cycle*10000);
+	#(i_clk_cycle*2000000);
 
 	//pause record
-	i_key_0 = 1'b1;
+	/*i_key_0 = 1'b1;
 	#(i_clk_cycle*1);
 	i_key_0 = 1'b0;
 
@@ -137,20 +136,20 @@ initial begin
 	#(i_clk_cycle*1);
 	i_key_0 = 1'b0;
 
-	#(i_clk_cycle*20000);
-	/*
-	//stop record
-	i_key_2 = 1'b1;
-	#(i_clk_cycle*1);
-	i_key_2 = 1'b0;
+	#(i_clk_cycle*200000);
 	*/
+	//stop record
+	/*i_key_2 = 1'b1;
+	#(i_clk_cycle*1);
+	i_key_2 = 1'b0;*/
+	
 	#(i_clk_cycle*10000);
 	//start play 
 	i_key_1 = 1'b1;
 	#(i_clk_cycle*1);
 	i_key_1 = 1'b0;
 
-	#(i_clk_cycle*12000);
+	#(i_clk_cycle*120000);
 
 	//pause play
 	i_key_1 = 1'b1;
@@ -164,7 +163,7 @@ initial begin
 	#(i_clk_cycle*1);
 	i_key_1 = 1'b0;
 
-	#(i_clk_cycle*5000);
+	#(i_clk_cycle*50000);
 
 	//stop play 
 	//i_key_2 = 1'b1;
@@ -184,7 +183,7 @@ always @(*) begin
 end
 
 initial begin 
-	i_speed = 5'b01001;
+	i_speed = 5'b00001;
 end
 
 endmodule
