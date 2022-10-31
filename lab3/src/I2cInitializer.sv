@@ -35,7 +35,7 @@ module I2cInitializer(
 	assign o_sclk = SCL;
 	assign o_sdat = SDA;
 	assign o_oen = o_oen_dly;
-	assign o_oen_early = (send_count == 4'd8) ? 1'd0 : 1'd1;
+	assign o_oen_early = (send_count == 4'd8 && SCL == 1'd0 && state == S_SEND ) ? 1'd0 : 1'd1;
 	assign o_finished = (state == S_FINAL) ? 1'd1 : 1'd0;
 	
 	logic [23:0] param_init;
@@ -59,7 +59,7 @@ module I2cInitializer(
 				state_nxt = (i_start_dly == 1'd1) ? S_SEND : S_IDLE;
 			end
 			S_SEND: begin
-				state_nxt = ( data_count == 5'd0 && send_count == 4'd8) ? S_BREAK : S_SEND;
+				state_nxt = ( data_count == 5'd0 && send_count == 4'd0) ? S_BREAK : S_SEND;
 			end
 			S_BREAK: begin
 				state_nxt = (phase_count == 3'd7) ? S_FINAL :((break_count == 3'd4) ? S_SEND : S_BREAK);
@@ -80,12 +80,12 @@ module I2cInitializer(
 				SCL_nxt = (i_start_dly == 1'd1) ? 1'b0 : SCL;
 			end
 			S_SEND: begin
-				SDA_nxt = (SCL == 1'b0 && data_count >=24) ? 1'b0 : (SCL == 1'b0 && data_count <24) ? param_init[data_count] : SDA;
+				SDA_nxt = (SCL == 1'b1 && data_count >=24) ? 1'b0 : (SCL == 1'b1 && data_count < 24) ? param_init[data_count] : SDA;
 				SCL_nxt = ~SCL;
 			end
 			S_BREAK: begin
 				case(break_count)
-					3'd0, 3'd1: begin
+					3'd0: begin
 						SCL_nxt = 1'b1;
 						SDA_nxt = 1'b0;
 					end
@@ -119,7 +119,7 @@ module I2cInitializer(
 				break_count_nxt = 3'd0;
 			end
 			S_SEND: begin
-				if(SCL==1'd1) begin
+				if(SCL==1'd0) begin
 					data_count_nxt = (data_count == 5'd0 || send_count == 4'd8) ?  data_count : data_count - 5'd1;
 					send_count_nxt = (send_count == 4'd8) ? 4'd0 : send_count + 4'd1;
 				end

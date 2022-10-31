@@ -1,0 +1,127 @@
+Magic 271485
+Revision Verdi_P-2019.06
+
+; Window Layout <x> <y> <width> <height> <signalwidth> <valuewidth>
+viewPort 0 23 1280 649 248 61
+
+; File list:
+; openDirFile [-d delimiter] [-s time_offset] [-rf auto_bus_rule_file] path_name file_name
+openDirFile -d / "" "/home/raid7_2/userb09/b09018/111-1/DCLab/lab3/sim/Lab3_Top_test.fsdb"
+
+; file time scale:
+; fileTimeScale ### s|ms|us|ns|ps
+
+; signal spacing:
+signalSpacing 5
+
+; windowTimeUnit is used for zoom, cursor & marker
+; waveform viewport range
+zoom 164871851.201626 167468258.307163
+cursor 76193040.000000
+marker 16302198.000000
+
+; user define markers
+; userMarker time_pos marker_name color linestyle
+; visible top row signal index
+top 0
+; marker line index
+markerPos 14
+
+; event list
+; addEvent event_name event_expression
+; curEvent event_name
+
+
+
+COMPLEX_EVENT_BEGIN
+
+
+COMPLEX_EVENT_END
+
+
+
+; toolbar current search type
+; curSTATUS search_type
+curSTATUS ByChange
+
+
+addGroup "G1"
+activeDirFile "" "/home/raid7_2/userb09/b09018/111-1/DCLab/lab3/sim/Lab3_Top_test.fsdb"
+addSignal -h 15 /Lab3_Top_test/Top0/i_clk
+addSignal -h 15 -holdScope i_clk_100k
+addSignal -h 15 -holdScope i_AUD_ADCLRCK
+addSignal -h 15 -holdScope i_AUD_BCLK
+addSignal -h 15 -holdScope i_AUD_DACLRCK
+addSignal -h 15 -holdScope i_key_0
+addSignal -h 15 -holdScope i_key_1
+addSignal -h 15 -holdScope i_key_2
+addSignal -h 15 -holdScope i_rst_n
+addSignal -h 15 -holdScope state[3:0]
+addSignal -h 15 -holdScope counter[1:0]
+addSignal -expanded -h 15 -holdScope io_SRAM_DQ[15:0]
+addSignal -h 15 -UNSIGNED -UDEC -holdScope aud_span_time_r[27:0]
+addSignal -h 15 -UNSIGNED -UDEC -holdScope play_span_time_r[27:0]
+addGroup "G2"
+addSignal -h 15 /Lab3_Top_test/Top0/i_clk_100k
+addSignal -h 15 -holdScope o_I2C_SCLK
+addSignal -h 15 -holdScope io_I2C_SDAT
+addSignal -h 15 -holdScope i2c_finish
+addSignal -h 15 -holdScope i2c_oen
+addSignal -h 15 -holdScope i2c_sdat
+addSignal -h 15 -holdScope i2c_start
+addGroup "G3"
+addSignal -h 15 /Lab3_Top_test/Top0/i_AUD_BCLK
+addSignal -h 15 -holdScope i_AUD_ADCLRCK
+addSignal -h 15 -holdScope i_AUD_ADCDAT
+addSignal -h 15 -UNSIGNED -BIN -holdScope data_record[15:0]
+addSignal -h 15 -UNSIGNED -UDEC -holdScope addr_record[19:0]
+addSignal -h 15 -holdScope rec_finish
+addSignal -h 15 -holdScope rec_pause
+addSignal -h 15 -holdScope rec_start
+addSignal -h 15 -holdScope rec_stop
+addSignal -h 15 /Lab3_Top_test/Top0/recorder0/pause1_flag_r
+addSignal -h 15 -holdScope state_r[2:0]
+addGroup "G4"
+addSignal -h 15 /Lab3_Top_test/Top0/i_clk
+addSignal -h 15 -holdScope i_speed[4:0]
+addSignal -h 15 -holdScope play_speed[3:0]
+addSignal -h 15 -holdScope play_enable
+addSignal -h 15 -holdScope play_fast
+addSignal -h 15 -holdScope i_key_1
+addSignal -h 15 -holdScope play_finish
+addSignal -h 15 -holdScope play_pause
+addSignal -h 15 -holdScope play_start
+addSignal -h 15 -holdScope play_stop
+addSignal -h 15 /Lab3_Top_test/Top0/dsp0/state_r[2:0]
+addSignal -h 15 -UNSIGNED -UDEC /Lab3_Top_test/Top0/addr_play[19:0]
+addSignal -h 15 -holdScope data_play[15:0]
+addSignal -h 15 -UNSIGNED -BIN -holdScope dac_data[15:0]
+addGroup "G5"
+addSignal -h 15 /Lab3_Top_test/Top0/i_AUD_BCLK
+addSignal -h 15 -holdScope i_AUD_DACLRCK
+addSignal -h 15 -UNSIGNED -BIN -holdScope dac_data[15:0]
+addSignal -h 15 -holdScope o_AUD_DACDAT
+addGroup "G6"
+
+; getSignalForm Scope Hierarchy Status
+; active file of getSignalForm
+activeDirFile "" "/home/raid7_2/userb09/b09018/111-1/DCLab/lab3/sim/Lab3_Top_test.fsdb"
+
+GETSIGNALFORM_SCOPE_HIERARCHY_BEGIN
+getSignalForm close
+
+"/Lab3_Top_test"
+"/Lab3_Top_test/Top0"
+
+SCOPE_LIST_BEGIN
+"/Lab3_Top_test"
+"/Lab3_Top_test/Top0"
+"/Lab3_Top_test/Top0/dsp0"
+"/Lab3_Top_test/Top0/init0"
+"/Lab3_Top_test/Top0/player0"
+"/Lab3_Top_test/Top0/recorder0"
+SCOPE_LIST_END
+
+GETSIGNALFORM_SCOPE_HIERARCHY_END
+
+
