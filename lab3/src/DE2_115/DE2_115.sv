@@ -248,23 +248,23 @@ SevenHexDecoder seven_dec0(
 	.o_seven_one(HEX0)
 );
 
-SevenHexDecoder seven_dec1(
-	.i_hex(rec_addrress[11:8]),
+SevenHexDecoder32 seven_dec1(
+	.i_hex(rec_addrress[19:15]),
 	.o_seven_ten(HEX3),
 	.o_seven_one(HEX2)
 );
 
-SevenHexDecoder seven_dec2(
+/*SevenHexDecoder seven_dec2(
 	.i_hex(rec_addrress[15:12]),
 	.o_seven_ten(HEX5),
 	.o_seven_one(HEX4)
-);
+);*/
 
-SevenHexDecoder seven_dec3(
+/*SevenHexDecoder seven_dec3(
 	.i_hex(rec_addrress[19:16]),
 	.o_seven_ten(HEX7),
 	.o_seven_one(HEX6)
-);
+);*/
 
 /*
 SevenHexDecoder seven_dec0(
@@ -284,9 +284,9 @@ SevenHexDecoder seven_dec1(
 // assign HEX1 = '1;
 //assign HEX2 = '1;
 //assign HEX3 = '1;
-//assign HEX4 = '1;
-//assign HEX5 = '1;
-//assign HEX6 = '1;
-//assign HEX7 = '1;
+assign HEX4 = '1;
+assign HEX5 = '1;
+assign HEX6 = '1;
+assign HEX7 = '1;
 
 endmodule
