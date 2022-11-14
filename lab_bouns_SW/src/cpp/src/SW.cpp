@@ -319,7 +319,7 @@ smith_waterman(
             deletion_not_pushed = 1;
         }
 
-        // printf("(row, col) = (%d, %d)\n", highest_row, highest_col);
+        printf("(row, col) = (%d, %d)\n", highest_row, highest_col);
 
         // terminate while loop
         if (last_direction==0 || highest_row<0 || highest_col<0)
