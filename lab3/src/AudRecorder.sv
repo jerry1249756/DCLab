@@ -28,7 +28,7 @@ logic [15:0] counter_r, counter_w;
 logic [15:0] save_bits_r, save_bits_w;
 
 assign o_address = address_r;
-assign o_data = data_r;
+assign o_data = (state_r == S_REC && counter_r == 16'd18 ) ? data_r : 16'bz;
 assign o_REC_finish = REC_finish;
 
 
