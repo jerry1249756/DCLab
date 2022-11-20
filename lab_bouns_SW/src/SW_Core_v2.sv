@@ -186,15 +186,49 @@ module SW_core(
             end
 
             S_input: begin
-               
+               sequence_A_n = i_sequence_ref;
+               sequence_B_n = i_sequence_read;
+               seq_A_length_n = i_seq_ref_length;
+               seq_B_length_n = i_seq_read_length;
             end
 
             S_calculate: begin
-                           
+                //column
+                if(column < seq_A_length) begin
+                    column_n = column + 1; 
+                end 
+                else begin
+                    column_n = 0;
+                end
+                //row
+                if(column == seq_A_length - 1) begin
+                    row_n = row + 1; 
+                end 
+                //counter
+                counter_n = row + column;
+                //row_highest_scores_n   row_highest_columns_n
+                if(PE_score_buff[row] > row_highest_scores[row]) begin
+                    row_highest_scores_n[row] = PE_score_buff[row];
+                    row_highest_columns_n[row] = column;
+                end
+                //sequence_A_shifter
+                sequence_A_shifter_n = sequence_A_shifter << 2;
+                //sequence_B_valid_n
+                if(column == seq_A_length - 1) begin
+                    sequence_B_valid_n[row] = 1;
+                end
+                
             end
 
             S_select_highest: begin
-                
+                //counter
+                if(counter = seq_A_length + seq_B_length - 1) counter_n = 0;
+                else counter_n = counter + 1;
+                //highest_score
+                if(highest_score < row_highest_scores[counter])begin
+                    highest_score_n = row_highest_scores[counter];
+                    o_column_n = row_highest_columns[counter];
+                end
             end
 
             S_done: begin

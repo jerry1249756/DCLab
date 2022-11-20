@@ -119,7 +119,6 @@ smith_waterman(
                 delete_directions[i][j] = 0;
             }
 
-
             // scores operation
             temp_align_score  = align_scores[i+1][j+1];
             temp_insert_score = insert_scores[i+1][j+1];
