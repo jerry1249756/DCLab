@@ -218,6 +218,14 @@ module SW_core(
                     sequence_B_valid_n[row] = 1;
                 end
                 
+                //align_score, insert_score, delete_score
+                for (i=0;i<`READ_MAX_LENGTH;i=i+1) PE_align_score_d_n  [i] = PE_align_score[i];
+                for (i=0;i<`READ_MAX_LENGTH;i=i+1) PE_insert_score_d_n [i] = PE_insert_score[i];
+                for (i=0;i<`READ_MAX_LENGTH;i=i+1) PE_delete_score_d_n [i] = PE_delete_score[i];
+                for (i=0;i<`READ_MAX_LENGTH;i=i+1) PE_align_score_dd_n [i] = PE_align_score_d[i];
+                for (i=0;i<`READ_MAX_LENGTH;i=i+1) PE_insert_score_dd_n[i] = PE_insert_score_d[i];
+                for (i=0;i<`READ_MAX_LENGTH;i=i+1) PE_delete_score_dd_n[i] = PE_delete_score_d[i];
+
             end
 
             S_select_highest: begin
@@ -228,11 +236,13 @@ module SW_core(
                 if(highest_score < row_highest_scores[counter])begin
                     highest_score_n = row_highest_scores[counter];
                     o_column_n = row_highest_columns[counter];
+                    o_row_n = counter;
                 end
             end
 
             S_done: begin
-                
+                if(!o_ready) o_ready = 1;
+                if(i_ready) o_valid_n = 1;
             end
         endcase
     end
@@ -324,16 +334,75 @@ module DP_PE_single(
     input signed [`DP_SW_SCORE_BITWIDTH-1:0]    i_delete_diagonal_score,
     input signed [`DP_SW_SCORE_BITWIDTH-1:0]    i_delete_left_score,
 
-    output signed [`DP_SW_SCORE_BITWIDTH-1:0]   o_align_score,
-    output signed [`DP_SW_SCORE_BITWIDTH-1:0]   o_insert_score,
-    output signed [`DP_SW_SCORE_BITWIDTH-1:0]   o_delete_score,
+    output reg signed [`DP_SW_SCORE_BITWIDTH-1:0]   o_align_score,
+    output reg signed [`DP_SW_SCORE_BITWIDTH-1:0]   o_insert_score,
+    output reg signed [`DP_SW_SCORE_BITWIDTH-1:0]   o_delete_score,
 
-    output signed [`DP_SW_SCORE_BITWIDTH-1:0]   o_the_score,            // The highest score among o_align_score, o_insert_score and o_delete_score
+    output reg signed [`DP_SW_SCORE_BITWIDTH-1:0]   o_the_score,            // The highest score among o_align_score, o_insert_score and o_delete_score
     output reg                                  o_last_A_base_valid,
     output reg [1:0]                            o_last_A_base
 );
 
 // *** TODO
+reg signed [`DP_SW_SCORE_BITWIDTH-1:0] S;
+
+always_comb begin
+    if(i_A_base == i_B_base) S = (`DP_SW_SCORE_BITWIDTH)'d(`CONST_MATCH_SCORE);
+    else S = (`DP_SW_SCORE_BITWIDTH)'d(`CONST_MISMATCH_SCORE);
+end
+
+always_comb begin
+    if(i_A_base_valid && i_B_base_valid) begin
+    `   if(i_align_top_score + (`DP_SW_SCORE_BITWIDTH)'d(`CONST_GAP_OPEN) > 0 && i_align_top_score + (`DP_SW_SCORE_BITWIDTH)'d(`CONST_GAP_OPEN) > i_delete_top_score + (`DP_SW_SCORE_BITWIDTH)'d(`CONST_GAP_EXTEND)) begin
+            o_insert_score = i_align_top_score + (`DP_SW_SCORE_BITWIDTH)'d(`CONST_GAP_OPEN);
+        end
+        else if(i_insert_top_score + (`DP_SW_SCORE_BITWIDTH)'d(`CONST_GAP_EXTEND) > 0 && i_insert_top_score + (`DP_SW_SCORE_BITWIDTH)'d(`CONST_GAP_EXTEND) > i_align_top_score + (`DP_SW_SCORE_BITWIDTH)'d(`CONST_GAP_OPEN)) begin
+            o_insert_score = i_insert_top_score + (`DP_SW_SCORE_BITWIDTH)'d(`CONST_GAP_EXTEND);
+        end 
+        else if(i_align_top_score + (`DP_SW_SCORE_BITWIDTH)'d(`CONST_GAP_OPEN) < 0 && i_insert_top_score + (`DP_SW_SCORE_BITWIDTH)'d(`CONST_GAP_EXTEND) < 0) begin
+            o_insert_score = 0;
+        end
+    end
+    else begin
+        o_insert_score = i_insert_left_score;
+    end
+end
+always_comb begin
+`   if(i_align_left_score + (`DP_SW_SCORE_BITWIDTH)'d(`CONST_GAP_OPEN) > 0 && i_align_left_score + (`DP_SW_SCORE_BITWIDTH)'d(`CONST_GAP_OPEN) > i_delete_left_score + (`DP_SW_SCORE_BITWIDTH)'d(`CONST_GAP_EXTEND)) begin
+        o_delete_score = i_align_left_score + (`DP_SW_SCORE_BITWIDTH)'d(`CONST_GAP_OPEN);
+    end
+    else if(i_delete_left_score + (`DP_SW_SCORE_BITWIDTH)'d(`CONST_GAP_EXTEND) > 0 && i_delete_left_score + (`DP_SW_SCORE_BITWIDTH)'d(`CONST_GAP_EXTEND) > i_align_left_score + (`DP_SW_SCORE_BITWIDTH)'d(`CONST_GAP_OPEN)) begin
+        o_delete_score = i_delete_left_score + (`DP_SW_SCORE_BITWIDTH)'d(`CONST_GAP_EXTEND);
+    end 
+    else if(i_align_left_score + (`DP_SW_SCORE_BITWIDTH)'d(`CONST_GAP_OPEN) < 0 && i_delete_left_score + (`DP_SW_SCORE_BITWIDTH)'d(`CONST_GAP_EXTEND) < 0) begin
+        o_delete_score = 0;
+    end
+end
+always_comb begin
+`   if(i_align_diagonal_score + S > o_insert_score && i_align_diagonal_score + S > o_delete_score && i_align_diagonal_score + S > 0) begin
+        o_align_score = i_align_diagonal_score + S;
+    end
+    else if(o_insert_score > i_align_diagonal_score + S && o_insert_score  > o_delete_score && o_insert_score > 0) begin
+        o_align_score = o_insert_score;
+    end 
+    else if(o_delete_score > i_align_diagonal_score + S && o_delete_score > o_insert_score && o_delete_score > 0) begin
+        o_align_score = o_delete_score;
+    end
+    else if(i_align_diagonal_score + S < 0 && o_insert_score < 0 && o_delete_score < 0) begin
+        o_align_score = 0;
+    end
+end
+always_comb begin
+`   if(o_align_score > o_insert_score && o_align_score > o_delete_score) begin
+        o_the_score = o_align_score;
+    end
+    else if(o_insert_score > o_align_score && o_insert_score > o_delete_score) begin
+        o_the_score = o_insert_score;
+    end 
+    else if(o_delete_score > o_align_score && o_delete_score > o_insert_score) begin
+        o_the_score = o_delete_score;
+    end
+end
 
 always@(posedge clk or posedge rst) begin
     if (rst) begin
