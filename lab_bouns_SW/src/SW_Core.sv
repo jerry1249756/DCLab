@@ -184,56 +184,57 @@ module SW_core(
         o_column_n              = 0;
         o_row_n                 = 0;
 
-        IDLE_counter_n = 0;
-
         // *** TODO
         case(state)
             S_idle: begin
-                IDLE_counter_n = IDLE_counter + 5'b1;
-                if(IDLE_counter == 5'd10) o_ready = 1'b1;
-                else o_ready = 1'b0;
                 if(i_valid == 1'b1) begin
+                    o_ready = 1'b0;
                     sequence_A_n = i_sequence_ref; 
                     sequence_B_n = i_sequence_read;
                     seq_A_length_n = i_seq_ref_length;
                     seq_B_length_n = i_seq_read_length;
                 end
+                else begin
+                    o_ready = 1'b1;
+                    sequence_A_n = 0; 
+                    sequence_B_n = 0;
+                    seq_A_length_n = 0;
+                    seq_B_length_n = 0;
+                    counter_n = 0;   
+                    for (i=0;i<`READ_MAX_LENGTH;i=i+1) sequence_B_valid_n[i] = 0;
+                    sequence_A_shifter_n = 0;
+                    highest_score_n = 0;
+                    column_n = 0;      
+                    row_n = 0;         
+                    for (i=0;i<`READ_MAX_LENGTH;i=i+1) row_highest_scores_n[i]  = 0; 
+                    for (i=0;i<`READ_MAX_LENGTH;i=i+1) row_highest_columns_n[i] = 0; 
+                    for (i=0;i<`READ_MAX_LENGTH;i=i+1) PE_align_score_d_n  [i]  = 0; 
+                    for (i=0;i<`READ_MAX_LENGTH;i=i+1) PE_insert_score_d_n [i]  = 0; 
+                    for (i=0;i<`READ_MAX_LENGTH;i=i+1) PE_delete_score_d_n [i]  = 0; 
+                    for (i=0;i<`READ_MAX_LENGTH;i=i+1) PE_align_score_dd_n [i]  = 0;
+                    for (i=0;i<`READ_MAX_LENGTH;i=i+1) PE_insert_score_dd_n[i]  = 0; 
+                    for (i=0;i<`READ_MAX_LENGTH;i=i+1) PE_delete_score_dd_n[i]  = 0; 
+                end
             end
 
             S_input: begin
-                
+                sequence_A_shifter_n = sequence_A;
+                //counter_n = counter + 1;
+                //sequence_B_valid_n
+                for (i=0;i<`READ_MAX_LENGTH;i=i+1) sequence_B_valid_n[i] = 1;
             end
 
             S_calculate: begin
-                //column
-                if(column < seq_A_length) begin
-                    column_n = column + 1; 
-                end 
-                else begin
-                    column_n = 0;
-                end
-                
-                //row
-                if(column == seq_A_length - 1) begin
-                    row_n = row + 1; 
-                end 
-
                 //counter
-                counter_n = row + column;
-
-                //row_highest_scores_n   row_highest_columns_n
-                if(PE_score_buff[row] > row_highest_scores[row]) begin
-                    row_highest_scores_n[row] = PE_score_buff[row];
-                    row_highest_columns_n[row] = column;
-                end
-
+                if(counter == seq_A_length + seq_B_length - 1) counter_n = 0;
+                else counter_n = counter + 1;
+                
                 //sequence_A_shifter
                 sequence_A_shifter_n = sequence_A_shifter << 2;
                 
-                //sequence_B_valid_n
-                if(column == seq_A_length - 1) begin
-                    sequence_B_valid_n[row] = 1;
-                end
+                
+                
+                
                 
                 //align_score, insert_score, delete_score
                 for (i=0;i<`READ_MAX_LENGTH;i=i+1) PE_align_score_d_n  [i] = PE_align_score[i];
@@ -242,24 +243,48 @@ module SW_core(
                 for (i=0;i<`READ_MAX_LENGTH;i=i+1) PE_align_score_dd_n [i] = PE_align_score_d[i];
                 for (i=0;i<`READ_MAX_LENGTH;i=i+1) PE_insert_score_dd_n[i] = PE_insert_score_d[i];
                 for (i=0;i<`READ_MAX_LENGTH;i=i+1) PE_delete_score_dd_n[i] = PE_delete_score_d[i];
+
+                //column
+                
+                
+                //row
+                
+
+                //row_highest_scores_n   row_highest_columns_n
+                for (i=0;i<`READ_MAX_LENGTH;i=i+1) begin
+                    if(PE_score_buff[i] > row_highest_scores[i]) begin
+                       row_highest_scores_n[i] = PE_score_buff[i];
+                       row_highest_columns_n[i] = counter - i -1;
+                    end
+                end
+
                 
             end
 
             S_select_highest: begin
-                //counter
-                if(counter == seq_A_length + seq_B_length - 1) counter_n = 0;
-                else counter_n = counter + 1;
-                
-                //highest_score
-                if(highest_score < row_highest_scores[counter])begin
+                counter_n = counter + 1;
+                if(row_highest_scores[counter] > highest_score) begin
                     highest_score_n = row_highest_scores[counter];
-                    o_column_n = row_highest_columns[counter];
-                    o_row_n = counter;
+                    column_n = row_highest_columns[counter];
+                    row_n = counter;
+                end
+
+                if(counter == seq_B_length - 1) begin
+                    if(row_highest_scores[counter] > highest_score) begin
+                        o_column_n = row_highest_columns[counter];
+                        o_row_n = counter;
+                        o_valid_n  = 1;
+                    end
+                    else begin
+                        o_row_n = row;
+                        o_column_n = column;
+                        o_valid_n  = 1;
+                    end
                 end
             end
 
             S_done: begin
-                if(i_ready) o_valid_n = 1;
+                
             end
         endcase
     end
@@ -394,43 +419,58 @@ always_comb begin
     end
 end
 always_comb begin
-    if(i_align_left_score + Gopen > 0 && i_align_left_score + Gopen > i_delete_left_score + Gextend) begin
-        o_delete_score = i_align_left_score + Gopen;
+    if(i_A_base_valid && i_B_base_valid) begin
+        if(i_align_left_score + Gopen > 0 && i_align_left_score + Gopen > i_delete_left_score + Gextend) begin
+            o_delete_score = i_align_left_score + Gopen;
+        end
+        else if(i_delete_left_score + Gextend > 0 && i_delete_left_score + Gextend > i_align_left_score + Gopen) begin
+            o_delete_score = i_delete_left_score + Gextend;
+        end 
+        else if(i_align_left_score + Gopen < 0 && i_delete_left_score + Gextend < 0) begin
+            o_delete_score = 0;
+        end
+        else o_delete_score = 0;
     end
-    else if(i_delete_left_score + Gextend > 0 && i_delete_left_score + Gextend > i_align_left_score + Gopen) begin
-        o_delete_score = i_delete_left_score + Gextend;
-    end 
-    else if(i_align_left_score + Gopen < 0 && i_delete_left_score + Gextend < 0) begin
-        o_delete_score = 0;
+    else begin
+        o_delete_score = i_delete_left_score;
     end
-    else o_delete_score = 0;
 end
 always_comb begin
-    if(i_align_diagonal_score + S > o_insert_score && i_align_diagonal_score + S > o_delete_score && i_align_diagonal_score + S > 0) begin
-        o_align_score = i_align_diagonal_score + S;
+    if(i_A_base_valid && i_B_base_valid) begin
+        if(i_align_diagonal_score + S > o_insert_score && i_align_diagonal_score + S > o_delete_score && i_align_diagonal_score + S > 0) begin
+            o_align_score = i_align_diagonal_score + S;
+        end
+        else if(o_insert_score > i_align_diagonal_score + S && o_insert_score  > o_delete_score && o_insert_score > 0) begin
+            o_align_score = o_insert_score;
+        end 
+        else if(o_delete_score > i_align_diagonal_score + S && o_delete_score > o_insert_score && o_delete_score > 0) begin
+            o_align_score = o_delete_score;
+        end
+        else if(i_align_diagonal_score + S < 0 && o_insert_score < 0 && o_delete_score < 0) begin
+            o_align_score = 0;
+        end
+        else o_align_score = 0;
     end
-    else if(o_insert_score > i_align_diagonal_score + S && o_insert_score  > o_delete_score && o_insert_score > 0) begin
-        o_align_score = o_insert_score;
-    end 
-    else if(o_delete_score > i_align_diagonal_score + S && o_delete_score > o_insert_score && o_delete_score > 0) begin
-        o_align_score = o_delete_score;
+    else begin
+        o_align_score = i_align_left_score;
     end
-    else if(i_align_diagonal_score + S < 0 && o_insert_score < 0 && o_delete_score < 0) begin
-        o_align_score = 0;
-    end
-    else o_align_score = 0;
 end
 always_comb begin
-    if(o_align_score > o_insert_score && o_align_score > o_delete_score) begin
+    if(i_A_base_valid && i_B_base_valid) begin
+        if(o_align_score > o_insert_score && o_align_score > o_delete_score) begin
+            o_the_score = o_align_score;
+        end
+        else if(o_insert_score > o_align_score && o_insert_score > o_delete_score) begin
+            o_the_score = o_insert_score;
+        end 
+        else if(o_delete_score > o_align_score && o_delete_score > o_insert_score) begin
+            o_the_score = o_delete_score;
+        end
+        else o_the_score = 0;
+    end
+    else begin
         o_the_score = o_align_score;
     end
-    else if(o_insert_score > o_align_score && o_insert_score > o_delete_score) begin
-        o_the_score = o_insert_score;
-    end 
-    else if(o_delete_score > o_align_score && o_delete_score > o_insert_score) begin
-        o_the_score = o_delete_score;
-    end
-    else o_the_score = 0;
 end
 
 always@(posedge clk or posedge rst) begin
