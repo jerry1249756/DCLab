@@ -51,7 +51,7 @@ module tb;
 	integer err_cnt;
 	initial begin
 		$fsdbDumpfile("lab2.fsdb");
-		$fsdbDumpvars;
+		$fsdbDumpvars(0, "+mda");
 
 		fp_test 	= $fopen("./../cpp/test_data/random_pattern.bin", "rb");
 		fp_golden	= $fopen("./../cpp/test_data/pattern_ans.txt", "r");
@@ -134,7 +134,7 @@ module tb;
 			$display("=========");
 		end
 		
-		if (err_cnt == 0)		$display("You have passed all patterns! (*>▽<*)");
+		if (err_cnt == 0)		$display("You have passed all patterns! (*>???<*)");
 		else if (err_cnt == 1)	$display("There is 1 error ...");
 		else 					$display("There are %0d errors ...", err_cnt);
 		$display("=========");
