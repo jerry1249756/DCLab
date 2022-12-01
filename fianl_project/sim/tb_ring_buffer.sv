@@ -12,6 +12,7 @@ logic       i_data;
 logic [7:0]      i_delta;
 
 logic [23:0] o_data;
+logic [23:0] L_o_data;
 
 initial i_clk = 0;
 always #(cycle/2.0) i_clk = ~i_clk;
@@ -30,7 +31,8 @@ RingBuffer buffer0(
     .i_start(i_start),
     .i_data(i_data),
     .i_delta(i_delta),
-    .buffer_data(o_data)
+    .o_buffer_data(o_data),
+	.o_L_buffer_data(L_o_data)
 );
 
 initial begin
@@ -39,7 +41,7 @@ initial begin
 end
 
 initial begin	
-	#(cycle*200000);
+	#(cycle*2000000);
 	$finish;
 end
 
