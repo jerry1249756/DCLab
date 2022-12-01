@@ -1,0 +1,79 @@
+Magic 271485
+Revision Verdi_P-2019.06
+
+; Window Layout <x> <y> <width> <height> <signalwidth> <valuewidth>
+viewPort 0 23 1280 649 240 65
+
+; File list:
+; openDirFile [-d delimiter] [-s time_offset] [-rf auto_bus_rule_file] path_name file_name
+openDirFile -d / "" "/home/raid7_2/userb09/b09105/DCLAB/finalproject/Smoothen.fsdb"
+
+; file time scale:
+; fileTimeScale ### s|ms|us|ns|ps
+
+; signal spacing:
+signalSpacing 5
+
+; windowTimeUnit is used for zoom, cursor & marker
+; waveform viewport range
+zoom 0.000000 1010.000000
+cursor 0.000000
+marker 0.000000
+
+; user define markers
+; userMarker time_pos marker_name color linestyle
+; visible top row signal index
+top 0
+; marker line index
+markerPos 7
+
+; event list
+; addEvent event_name event_expression
+; curEvent event_name
+
+
+
+COMPLEX_EVENT_BEGIN
+
+
+COMPLEX_EVENT_END
+
+
+
+; toolbar current search type
+; curSTATUS search_type
+curSTATUS ByChange
+
+
+addGroup "G1"
+activeDirFile "" "/home/raid7_2/userb09/b09105/DCLAB/finalproject/Smoothen.fsdb"
+addSignal -h 15 /tb_Smoothen/Smoothen0/i_50M_clk
+addSignal -h 15 -holdScope i_rst_n
+addSignal -h 15 -holdScope state_r[1:0]
+addSignal -h 15 -holdScope i_valid
+addSignal -h 15 -holdScope i_SRAM_address[19:0]
+addSignal -h 15 -UNSIGNED -UDEC -holdScope i_square_add_data_seq[15:0]
+addSignal -h 15 -UNSIGNED -UDEC -holdScope counter_r[4:0]
+addSignal -h 15 -UNSIGNED -UDEC -holdScope accumulate_data_r[21:0]
+addSignal -h 15 -holdScope o_SRAM_address[19:0]
+addSignal -h 15 -UNSIGNED -UDEC -holdScope o_SRAM_data[15:0]
+addSignal -h 15 -holdScope o_ready
+addGroup "G2"
+
+; getSignalForm Scope Hierarchy Status
+; active file of getSignalForm
+activeDirFile "" "/home/raid7_2/userb09/b09105/DCLAB/finalproject/Smoothen.fsdb"
+
+GETSIGNALFORM_SCOPE_HIERARCHY_BEGIN
+getSignalForm close
+
+"/tb_Smoothen"
+
+SCOPE_LIST_BEGIN
+"/tb_Smoothen"
+"/tb_Smoothen/Smoothen0"
+SCOPE_LIST_END
+
+GETSIGNALFORM_SCOPE_HIERARCHY_END
+
+
