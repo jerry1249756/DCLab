@@ -1,0 +1,10 @@
+	component Altpll is
+		port (
+			altpll_0_c25m_clk  : out std_logic;        -- clk
+			altpll_0_c3p2m_clk : out std_logic;        -- clk
+			altpll_0_c50k_clk  : out std_logic;        -- clk
+			clk_clk            : in  std_logic := 'X'; -- clk
+			reset_reset_n      : in  std_logic := 'X'  -- reset_n
+		);
+	end component Altpll;
+
