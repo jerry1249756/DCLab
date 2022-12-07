@@ -182,8 +182,7 @@ module VGA(
             state_w = state_r;
         end
     end
-
-    // Flip-flop
+    
     always_ff @(posedge i_clk_25M or posedge i_rst) begin
         if (i_rst) begin
             h_counter_r <= 0;   
