@@ -1,7 +1,7 @@
 module Coordinate_generator(
     input i_clk,
-    input signed [7:0] p_x,
-    input signed [7:0] p_y,
+    input signed [$clog2(`PIXEL_COLUMN)-1:0] p_x,
+    input signed [$clog2(`PIXEL_ROW)-1:0] p_y,
     output signed [8:0] real_x[15:0],
     output signed [8:0] real_y[15:0]
 );
@@ -36,12 +36,11 @@ endmodule
 
 
 module Delta_generator (
-    input i_clk,
-    input signed [7:0] p_x,
-    input signed [7:0] p_y,
-    output [7:0] delta[15:0]
+    input signed [$clog2(`PIXEL_COLUMN)-1:0] p_x,
+    input signed [$clog2(`PIXEL_ROW)-1:0] p_y,
+    output [$clog2(`DELTA_LAST)-1:0] delta[15:0]
 );
-    function [7:0] f (input [18:0]idx);
+    function [$clog2(`DELTA_LAST)-1:0] f (input [18:0]idx);
 		case(idx) inside
 			[19'd0: 19'd3844]:        f=8'd147;//62
 			[19'd3845: 19'd12544]:    f=8'd148;//112

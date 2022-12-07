@@ -7,29 +7,24 @@ module RingBuffer(
     input i_iterate_start,
     input i_change_pointer,
     input i_data,
-    input [7:0] i_delta,
-    output [23:0] o_L_buffer_data,
-    output [23:0] o_buffer_data
+    input [$clog2(`DELTA_LAST)-1:0] i_delta,
+    output signed [`READBIT-1:0] o_L_buffer_data,
+    output signed [`READBIT-1:0] o_buffer_data
 );
+
+integer i;
 
 localparam S_IDLE = 0;
 localparam S_INITIAL = 1;
 localparam S_ITERATE = 2;
 
-//Use when only testing ring_buffer!!!!!!!!
-
-// localparam L = 30;
-// localparam DELTA_START = 147;
-// localparam DELTA_LAST = 169;
-// localparam BUFFER_LENGTH = L + DELTA_LAST - DELTA_START + 1;
-// localparam PIXEL_LENGTH = 10000;
-
-logic [23:0] i_newrecord_data;
+logic signed [`READBIT-1:0] i_newrecord_data;
 logic [1:0] state_r, state_w;
-logic [BUFFER_LENGTH-1:0][23:0] buffer_r, buffer_w;
-logic [$clog2(BUFFER_LENGTH)-1:0] pointer_r, pointer_w;
-logic [23:0] output_r, output_w;
-logic [23:0] L_output_r, L_output_w;
+logic signed [`READBIT-1:0] buffer_r [`BUFFER_LENGTH-1:0];
+logic signed [`READBIT-1:0] buffer_w [`BUFFER_LENGTH-1:0];
+logic [$clog2(`BUFFER_LENGTH)-1:0] pointer_r, pointer_w;
+logic signed [`READBIT-1:0] output_r, output_w;
+logic signed [`READBIT-1:0] L_output_r, L_output_w;
 
 assign o_buffer_data = output_r;
 assign o_L_buffer_data = L_output_r;
@@ -62,7 +57,7 @@ always_comb begin
         end
         S_INITIAL, S_ITERATE: begin
             if(i_change_pointer) begin
-                if(pointer_r == BUFFER_LENGTH - 1) pointer_w = 0;
+                if(pointer_r == `BUFFER_LENGTH - 1) pointer_w = 0;
                 else pointer_w = pointer_r + 1;
             end
         end
@@ -70,9 +65,11 @@ always_comb begin
 end
 
 // buffer replace
-always_comb begin
-    buffer_w = buffer_r;
-    if(state_r == S_IDLE) buffer_w = 0;
+always@(*) begin
+    for(i=0; i<`BUFFER_LENGTH; i=i+1) buffer_w[i] = buffer_r[i];
+    if(state_r == S_IDLE) begin
+        for(i=0; i<`BUFFER_LENGTH; i=i+1) buffer_w[i] = 0;
+    end
     else begin
         if(i_change_pointer) buffer_w[pointer_r] = i_newrecord_data;
     end
@@ -82,8 +79,8 @@ end
 always_comb begin
     output_w = output_r;
     if(state_r == S_ITERATE) begin
-        if(i_delta-DELTA_START+pointer_r <= BUFFER_LENGTH-1) output_w = buffer_r[i_delta-DELTA_START+pointer_r];
-        else output_w = buffer_r[i_delta-DELTA_START+pointer_r-BUFFER_LENGTH];
+        if(i_delta-`DELTA_START+pointer_r <= `BUFFER_LENGTH-1) output_w = buffer_r[i_delta-`DELTA_START+pointer_r];
+        else output_w = buffer_r[i_delta-`DELTA_START+pointer_r-`BUFFER_LENGTH];
     end
 end
 
@@ -91,22 +88,22 @@ end
 always_comb begin
     L_output_w = L_output_r;
     if(state_r == S_ITERATE) begin
-        if(i_delta-DELTA_START+pointer_r < L) L_output_w = buffer_r[i_delta-DELTA_START+pointer_r-L+BUFFER_LENGTH];
-        else L_output_w = buffer_r[i_delta-DELTA_START+pointer_r-L];
+        if(i_delta-`DELTA_START+pointer_r < `L) L_output_w = buffer_r[i_delta-`DELTA_START+pointer_r-`L+`BUFFER_LENGTH];
+        else L_output_w = buffer_r[i_delta-`DELTA_START+pointer_r-`L];
     end
 end
 
-always_ff @(posedge i_clk or posedge i_rst) begin
+always@(posedge i_clk or posedge i_rst) begin
 	if(i_rst)begin
         state_r <= 0;
-        buffer_r <= 0;
+        for(i=0; i<`BUFFER_LENGTH ; i=i+1) buffer_r[i] <= 0;
         pointer_r <= 0;
         output_r <= 0;
         L_output_r <= 0;
 	end
 	else begin
         state_r <= state_w;
-        buffer_r <= buffer_w;
+        for(i=0; i<`BUFFER_LENGTH; i=i+1) buffer_r[i] <= buffer_w[i] ;
         pointer_r <= pointer_w;
         output_r <= output_w;
         L_output_r <= L_output_w;

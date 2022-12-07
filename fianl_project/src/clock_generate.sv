@@ -1,7 +1,7 @@
 module Clock_Generate(
     input i_fast_50M_clk,
     input i_rst,
-    output o_slow_25M_clk,
+    output o_slow_25M_clk
 );
 
 logic flag_25_r, flag_25_w;

@@ -5,7 +5,7 @@ module Recorder(
     input i_rst,
     input i_start,
     input i_data,
-    output [23:0] o_data
+    output signed [`READBIT-1:0] o_data
 );
 
 localparam S_IDLE = 0;
@@ -13,10 +13,10 @@ localparam S_REC = 1;
 
 logic state_r, state_w;
 logic [4:0] counter_r, counter_w;
-logic [23:0] data_r, data_w;
-logic [23:0] o_data_r, o_data_w;
+logic signed [23:0] data_r, data_w;
+logic signed [23:0] o_data_r, o_data_w;
 
-assign o_data = o_data_r;
+assign o_data = o_data_r[23-:`READBIT];
 
 //state
 always_comb begin
