@@ -14,13 +14,18 @@ localparam S_REC = 1;
 logic state_r, state_w;
 logic [4:0] counter_r, counter_w;
 logic [23:0] data_r, data_w;
+logic [23:0] o_data_r, o_data_w;
 
-assign o_data = data_r;
+assign o_data = o_data_r;
 
 //state
 always_comb begin
     state_w = state_r;
     if(!state_r && i_start) state_w = S_REC;
+end
+
+always_comb begin
+    o_data_w = data_r;
 end
 
 //BCLK bit counter 
@@ -66,6 +71,15 @@ always_ff @(posedge i_BCLK or posedge i_rst) begin
         counter_r <= counter_w;
         data_r <= data_w;
 	end
+end
+
+always_ff @(posedge i_LRCK or posedge i_rst) begin
+    if(i_rst) begin
+        o_data_r <= 0;
+    end
+    else begin
+        o_data_r <= o_data_w;
+    end
 end
 
 endmodule

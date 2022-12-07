@@ -187,7 +187,6 @@ end
 always_comb begin
     column_counter_w = column_counter_r;
     row_counter_w = row_counter_r;
-    change_pointer_w = change_pointer_r;
     case(state_r)
         S_IDLE: begin
             column_counter_w = 0;

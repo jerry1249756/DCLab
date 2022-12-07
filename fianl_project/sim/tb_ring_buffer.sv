@@ -3,11 +3,12 @@
 module tb_ring_buffer;
 
 parameter	cycle = 10.0;
-parameter   bclk_cycle = 1000.0;
-parameter	lr_cycle = 58000.0;
-
+parameter   bclk_cycle = 100.0;
+parameter	lr_cycle = 5800.0;
 logic 		i_clk, i_bclk, i_lrck;
-logic 		i_rst, i_start;
+logic       i_rst;
+logic       i_initial_start, i_iterate_start;
+logic       i_change_pointer;
 logic       i_data;
 logic [7:0]      i_delta;
 
@@ -23,12 +24,16 @@ always #(bclk_cycle/2.0) i_bclk = ~i_bclk;
 initial i_lrck = 0;
 always #(lr_cycle/2.0) i_lrck = ~i_lrck;
 
+
+
 RingBuffer buffer0(
     .i_clk(i_clk),
     .i_BCLK(i_bclk),
     .i_LRCK(i_lrck),
     .i_rst(i_rst),
-    .i_start(i_start),
+    .i_initial_start(i_initial_start),
+    .i_iterate_start(i_iterate_start),
+    .i_change_pointer(i_change_pointer),
     .i_data(i_data),
     .i_delta(i_delta),
     .o_buffer_data(o_data),
@@ -50,7 +55,8 @@ initial begin
     i_bclk  = 0;
 	i_lrck 	= 0;
 	i_rst = 0;
-	i_start	= 0;
+    i_initial_start = 0;
+    i_iterate_start = 0;
 
 	@(negedge i_clk);
 	@(negedge i_clk);
@@ -61,10 +67,24 @@ initial begin
 	@(negedge i_clk);
 	@(negedge i_clk);
 	#(cycle*15);
-	@(negedge i_clk) i_start = 1;
-	@(negedge i_clk);
-	@(negedge i_clk) i_start = 0;
+	@(negedge i_clk) i_initial_start = 1;
+	@(negedge i_clk) i_initial_start = 0;
+	#(cycle*150000);
+    @(negedge i_clk) i_iterate_start = 1;
+	@(negedge i_clk) i_iterate_start = 0;
+end
 
+initial begin
+    i_change_pointer = 0;
+    forever begin
+        #(cycle*15000)
+        // #(cycle*0.1)
+        // i_change_pointer = 1;
+        // #(cycle*0.8)
+        // i_change_pointer = 0;
+        @(negedge i_clk) i_change_pointer = 1;
+        @(negedge i_clk) i_change_pointer = 0;
+    end
 end
 
 initial begin
