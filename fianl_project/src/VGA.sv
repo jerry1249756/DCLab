@@ -1,16 +1,16 @@
 module VGA(
     //de2-115
-   input  i_rst_n,
-   input  i_clk_25M,
-   output [7:0] o_VGA_B,
+   	input  i_clk_25M,
+	input  i_rst,
+	input [15:0] i_display_data,
+   	output [7:0] o_VGA_B,
 	output o_VGA_BLANK_N,
 	output o_VGA_CLK,
 	output [7:0] o_VGA_G,
 	output o_VGA_HS,
 	output [7:0] o_VGA_R,
 	output o_VGA_SYNC_N,
-	output o_VGA_VS,
-	input [15:0] i_display_data
+	output o_VGA_VS
 );
 
 parameter C_H_SYNC_PULSE = 96,
@@ -107,8 +107,8 @@ always_comb begin
 end
 
 
-always_ff @(posedge i_25M_clk or negedge i_rst_n) begin
-	if (!i_rst_n) begin
+always_ff @(posedge i_25M_clk or posedge i_rst) begin
+	if (i_rst) begin
 		state_r <= S_IDLE;
 		h_counter_r <= 0;
 		v_counter_r <= 0;
@@ -121,8 +121,6 @@ always_ff @(posedge i_25M_clk or negedge i_rst_n) begin
 		SRAM_address_r <= SRAM_address_w;
 	end
 end
-
-
 
 endmodule
 
