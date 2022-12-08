@@ -1,7 +1,8 @@
 module VGA(
-    input  i_rst,
-    input  i_clk_25M,
-    output [7:0] o_VGA_B,
+    //de2-115
+   input  i_rst_n,
+   input  i_clk_25M,
+   output [7:0] o_VGA_B,
 	output o_VGA_BLANK_N,
 	output o_VGA_CLK,
 	output [7:0] o_VGA_G,
@@ -21,7 +22,7 @@ module VGA(
     logic state_r, state_w;
 
     logic i_start_display;
-
+    
     // 640*480, refresh rate 60Hz
     // VGA clock rate 25.175MHz
     localparam H_SYNC   =   96;
@@ -33,7 +34,7 @@ module VGA(
     localparam H_VALID_LB  =  H_SYNC + H_BACK + H_LEFT ;  
 	 localparam H_VALID_UB  =  H_SYNC + H_BACK + H_LEFT + H_ACT;  
     localparam H_TOTAL  =   800;  //800 effect:145~785
-
+	 
     localparam V_SYNC   =   2;
     localparam V_BACK   =   25;
 	 localparam V_TOP    =   8;
@@ -46,6 +47,10 @@ module VGA(
 
     localparam S_IDLE    = 1'b0;
     localparam S_DISPLAY = 1'b1;
+	 
+	 localparam minimum = 16'd0;
+	 localparam maximum = 16'b1111_1111_1111_1111; 
+	 localparam half = (minimum + maximum) / 2;
 
     // Output assignment
     assign o_VGA_CLK      =   i_clk_25M;
@@ -58,7 +63,7 @@ module VGA(
     assign o_VGA_BLANK_N  =   1'b1;
 
     assign i_start_display = 1'b1;
-
+    
     // Coordinates
     always_comb begin
         case(state_r)
@@ -114,7 +119,7 @@ module VGA(
             end
         endcase
     end
-
+    
     always_comb begin
         case(state_r)
             S_IDLE: begin
@@ -133,7 +138,7 @@ module VGA(
             end
         endcase
     end
-
+    
     // RGB data
     always_comb begin
         case(state_r)
@@ -158,8 +163,8 @@ module VGA(
                 end
                 else begin
                     addr_display_w = addr_display_r + 20'd1;
-						  if(h_counter_r < (H_VALID_LB + 100) || h_counter_r > (H_TOTAL - 100)) begin
-							  vga_r_w = 0;
+						  /*if(h_counter_r < (H_VALID_LB + 100) || h_counter_r > (H_TOTAL - 100)) begin
+							  vga_r_w = 8'd200;
 							  vga_g_w = 8'd200;
 							  vga_b_w = 8'd200;
 						  end
@@ -167,6 +172,16 @@ module VGA(
 							  vga_r_w = 8'd0;
 							  vga_g_w = 8'd0;
 							  vga_b_w = 8'd0;						  
+						  end*/
+						  if(i_display_data >= minimum && half >= i_display_data) begin
+								vga_r_w = 0;
+								vga_g_w = ((16'd255)*i_display_data - (16'd255)*minimum)/(half - minimum);
+								vga_b_w = 16'd255 - ((16'd255)*i_display_data - (16'd255)*minimum)/(half - minimum);
+						  end
+						  else begin
+								vga_r_w = ((16'd255)*i_display_data - (16'd255)*half)/(maximum - half);
+								vga_g_w = 16'd255 - ((16'd255)*i_display_data - (16'd255)*half)/(maximum - half);
+								vga_b_w = 0;
 						  end
                 end
             end
@@ -182,9 +197,10 @@ module VGA(
             state_w = state_r;
         end
     end
-    
-    always_ff @(posedge i_clk_25M or posedge i_rst) begin
-        if (i_rst) begin
+
+    // Flip-flop
+    always_ff @(posedge i_clk_25M or negedge i_rst_n) begin
+        if (!i_rst_n) begin
             h_counter_r <= 0;   
             v_counter_r <= 0;
             hsync_r <= 1'b1;
