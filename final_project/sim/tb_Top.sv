@@ -70,7 +70,7 @@ SRAM SRAM0(
 
 
 initial begin	
-	#(cycle*5000000);
+	#(lr_cycle*10000000);
 	$finish;
 end
 

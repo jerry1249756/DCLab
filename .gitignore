@@ -5,6 +5,7 @@
 *.qpf
 *.qsf
 *.bak
+*.rc
 *key
 /lab1/sim/BSSLib.lib++/
 /lab1/sim/INCA_libs/
@@ -37,3 +38,11 @@
 /lab3/src/BSSLib.lib++/
 /lab3/src/.nfs0000000080c216d90000b665
 /lab3/src/spyglass-1/
+
+
+
+
+
+/final_project/src/BSSLib.lib++/
+/final_project/src/INCA_libs/
+/final_project/src/nWaveLog/

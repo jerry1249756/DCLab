@@ -1,32 +1,32 @@
 `define L  32
 `define DELTA_START  147
-`define DELTA_LAST  169
-`define BUFFER_LENGTH  `L + `DELTA_LAST - `DELTA_START + 1
+`define DELTA_LAST  178
+`define BUFFER_LENGTH  64//`L + `DELTA_LAST - `DELTA_START + 1
 `define PIXEL_ROW  480
 `define PIXEL_COLUMN  640
-`define PIXEL_LENGTH  `PIXEL_ROW * `PIXEL_COLUMN
+`define PIXEL_LENGTH  307200//`PIXEL_ROW * `PIXEL_COLUMN
 `define MIC_NUMBER 16
-`define READBIT 21
+`define READBIT 16
 
 `define H_SYNC  96
 `define H_BACK  40
 `define H_LEFT  8
-`define H_ACT  `PIXEL_COLUMN
+`define H_ACT  640//`PIXEL_COLUMN
 `define H_RIGHT  8
 `define H_FRONT  8
-`define H_VALID_LB   `H_SYNC + `H_BACK + `H_LEFT 
-`define H_VALID_UB   `H_SYNC + `H_BACK + `H_LEFT + `H_ACT
-`define H_TOTAL  `H_VALID_LB + `H_ACT + `H_VALID_UB //800
+`define H_VALID_LB   144//`H_SYNC + `H_BACK + `H_LEFT 
+`define H_VALID_UB   784//`H_SYNC + `H_BACK + `H_LEFT + `H_ACT
+`define H_TOTAL  800//`H_VALID_LB + `H_ACT + `H_RIGHT + `H_FRONT //800
 
 `define V_SYNC  2
 `define V_BACK  25
 `define V_TOP  8
-`define V_ACT  `PIXEL_ROW
+`define V_ACT  480//`PIXEL_ROW
 `define V_BOTTOM  8
 `define V_FRONT  2
-`define V_VALID_LB    `V_SYNC + `V_BACK + `V_TOP
-`define V_VALID_UB    `V_SYNC + `V_BACK + `V_TOP + `V_ACT
-`define V_TOTAL  `V_VALID_LB + `V_ACT + `V_VALID_UB // 525
+`define V_VALID_LB    35//`V_SYNC + `V_BACK + `V_TOP
+`define V_VALID_UB    515//`V_SYNC + `V_BACK + `V_TOP + `V_ACT
+`define V_TOTAL  525//`V_VALID_LB + `V_ACT + + `V_BOTTOM + `V_FRONT // 525
 
 
 
@@ -66,8 +66,8 @@ logic [$clog2(`H_TOTAL)-1:0] column_counter_r, column_counter_w;
 logic [$clog2(`V_TOTAL)-1:0] row_counter_r, row_counter_w;
 logic [$clog2(`BUFFER_LENGTH)-1:0] frame_counter_r, frame_counter_w;
 
-logic [$clog2(`PIXEL_COLUMN)-1:0] pos_coordinate_x;
-logic [$clog2(`PIXEL_ROW)-1:0] pos_coordinate_y;
+logic signed [$clog2(`PIXEL_COLUMN)-1:0] pos_coordinate_x;
+logic signed [$clog2(`PIXEL_ROW)-1:0] pos_coordinate_y;
 logic signed [$clog2(`PIXEL_COLUMN)-1:0] sign_coordinate_x;
 logic signed [$clog2(`PIXEL_ROW)-1:0] sign_coordinate_y;
 
@@ -78,9 +78,13 @@ logic signed [`READBIT-1:0] buffer_data [`MIC_NUMBER-1 : 0];
 logic stop_r, stop_w;
 logic change_pointer_r, change_pointer_w;
 logic initial_start, calculate_start;
+logic initial_start_25, calculate_start_25;
+// logic calculate_start_25_r, calculate_start_25_w;
+// logic initial_start_counter_r, initial_start_counter_w;
+// logic calculate_start_counter_r, calculate_start_counter_w; 
 
 //for add&square
-logic [16:0] add_square_data, L_add_square_data;
+logic [34:0] add_square_data, L_add_square_data;
 //for SRAM
 logic [15:0] sram_data_read, sram_data_write;
 
@@ -101,8 +105,8 @@ assign o_SRAM_OE_N = 1'b0;
 assign o_SRAM_LB_N = 1'b0;
 assign o_SRAM_UB_N = 1'b0;
 
-assign pos_coordinate_x = (column_counter_r >= `H_VALID_LB && column_counter_r < `H_VALID_UB) ? column_counter_r - `H_VALID_LB : 10'dx;
-assign pos_coordinate_y = (column_counter_r >= `V_VALID_LB && column_counter_r < `V_VALID_UB) ? row_counter_r - `V_VALID_LB : 10'dx;
+assign pos_coordinate_x = (column_counter_r >= `H_VALID_LB && column_counter_r < `H_VALID_UB) ? (column_counter_r - `H_VALID_LB) : 10'dx;
+assign pos_coordinate_y = (row_counter_r >= `V_VALID_LB && row_counter_r < `V_VALID_UB) ? (row_counter_r - `V_VALID_LB) : 10'dx;
 assign sign_coordinate_x = pos_coordinate_x - (`PIXEL_COLUMN >> 1);
 assign sign_coordinate_y = pos_coordinate_y - (`PIXEL_ROW >> 1);
 
@@ -121,8 +125,8 @@ generate
             .i_BCLK(i_BCLK),
             .i_LRCK(i_LRCK),
             .i_rst(i_rst),
-            .i_initial_start(initial_start),
-            .i_iterate_start(calculate_start),
+            .i_initial_start(initial_start_25),
+            .i_iterate_start(calculate_start_25),
             .i_change_pointer(change_pointer_r),
             .i_data(i_mic_data[idx]),
             .i_delta(delta_array[idx]),
@@ -180,12 +184,18 @@ always_comb begin
             if(i_start && !i_25M_clk) state_w = S_INITIAL;
             initial_start = 0;
             calculate_start = 0;
+            initial_start_25 = 0;
+            calculate_start_25 = 0;
         end
         S_INITIAL: begin
-            if(row_counter_r == 0 && column_counter_r == 0 && frame_counter_r == 0 && i_25M_clk) initial_start = 1;
+            if(row_counter_r == 0 && column_counter_r == 0 && frame_counter_r == 0 && i_25M_clk) begin
+                initial_start = 1;
+                initial_start_25 = 1;
+            end
             else initial_start = 0;
             if(frame_counter_r == `BUFFER_LENGTH - 1 && i_25M_clk) begin
                 calculate_start = 1;
+                calculate_start_25 = 1;
                 state_w = S_CALCULATE;
             end
             else calculate_start = 0;
@@ -193,6 +203,8 @@ always_comb begin
         S_CALCULATE: begin
             initial_start = 0;
             calculate_start = 0;
+            initial_start_25 = 0;
+            calculate_start_25 = 1;
         end
     endcase
 end
@@ -211,7 +223,7 @@ always_comb begin
         S_INITIAL, S_CALCULATE: begin
             if(!i_25M_clk) begin
                 change_pointer_w = 0;
-                if(row_counter_r < `V_VALID_LB-1 || column_counter_r == `H_TOTAL || row_counter_r >= `V_VALID_UB-1) begin
+                if(row_counter_r < `V_VALID_LB || column_counter_r == `H_TOTAL || row_counter_r >= `V_VALID_UB-1) begin
                     column_counter_w = 0;
                     row_counter_w = row_counter_w + 1;
                 end
@@ -231,13 +243,21 @@ end
 always_comb begin
     frame_counter_w = frame_counter_r;
     if(state_r == S_INITIAL && !i_25M_clk && row_counter_r == `V_TOTAL) frame_counter_w = frame_counter_r + 1;
-    else frame_counter_w = 0;
+    if(state_r != S_INITIAL) frame_counter_w = 0;
 end
 
 always_comb begin
     stop_w = 0;
-    if(row_counter_r < `V_VALID_LB-1 || row_counter_r >= `V_VALID_UB-1 || column_counter_r < `H_VALID_LB-1 || column_counter_r >= `H_VALID_UB-1) stop_w = 1;
+    if(!i_25M_clk && row_counter_r < `V_VALID_LB || row_counter_r >= `V_VALID_UB-1 || column_counter_r < `H_VALID_LB || column_counter_r >= `H_VALID_UB-1) stop_w = 1;
 end
+
+// always_comb begin
+//     initial_start_counter_w = initial_start_counter_r;
+//     if(initial_start_25 == 1) initial_start_counter_w = initial_start_counter_r + 1;
+//     if(initial_start_counter_r == 1) initial_start_25 = 1;
+//     if()
+    
+// end
 
 always_ff @(posedge i_50M_clk or posedge i_rst) begin
 	if(i_rst)begin

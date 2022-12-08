@@ -78,7 +78,7 @@ end
 // output
 always_comb begin
     output_w = output_r;
-    if(state_r == S_ITERATE) begin
+    if(state_r == S_ITERATE || state_r == S_INITIAL) begin
         if(i_delta-`DELTA_START+pointer_r <= `BUFFER_LENGTH-1) output_w = buffer_r[i_delta-`DELTA_START+pointer_r];
         else output_w = buffer_r[i_delta-`DELTA_START+pointer_r-`BUFFER_LENGTH];
     end
