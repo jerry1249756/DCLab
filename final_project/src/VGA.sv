@@ -1,6 +1,6 @@
 module VGA(
     //de2-115
-   input  i_rst_n,
+   input  i_rst,
    input  i_clk_25M,
    output [7:0] o_VGA_B,
 	output o_VGA_BLANK_N,
@@ -199,8 +199,8 @@ module VGA(
     end
 
     // Flip-flop
-    always_ff @(posedge i_clk_25M or negedge i_rst_n) begin
-        if (!i_rst_n) begin
+    always_ff @(posedge i_clk_25M or posedge i_rst) begin
+        if (i_rst) begin
             h_counter_r <= 0;   
             v_counter_r <= 0;
             hsync_r <= 1'b1;

@@ -136,112 +136,98 @@ module DE2_115 (
 	inout [6:0] EX_IO
 );
 
-logic key0down, key1down, key2down, key3down;
-logic [3:0] state;
-logic key_0;
-logic [1:0] top_counter;
-logic [15:0] debug_100k_counter;
-logic [15:0] debug_BCLK_counter;
-logic CLK_12M, CLK_100K, CLK_800K;
-logic [3:0]  i2c_counter;
-logic [3:0]  ack;
-logic [19:0] rec_addrress;
-
-assign AUD_XCK = CLK_12M;
+logic CLK_25M, CLK_3p2M, CLK_50k;
 
 Altpll pll0( // generate with qsys, please follow lab2 tutorials
 	.clk_clk(CLOCK_50),
-	.reset_reset_n(key3down),
-	.altpll_0_c0_clk(CLK_12M),
-	.altpll_1_c0_clk(CLK_100K)
+	.reset_reset_n(KEY[0]),
+	.altpll_0_c25m_clk(CLK_25M),
+	.altpll_0_c3p2m_clk(CLK_3p2M),
+	.altpll_0_c50k_clk(CLK_50k)
 	//.altpll_800k_clk(CLK_800K)
 );
 
 // you can decide key down settings on your own, below is just an example
-Debounce deb0(
-	.i_in(KEY[0]), // Record/Pause
-	.i_rst_n(KEY[3]),
-	.i_clk(CLK_12M),
-	.o_neg(key0down) 
-);
 
-Debounce deb1(
-	.i_in(KEY[1]), // Play/Pause
-	.i_rst_n(KEY[3]),
-	.i_clk(CLK_12M),
-	.o_neg(key1down) 
-);
+logic mic_data [0 : `MIC_NUMBER-1];
+assign GPIO[1] = 1'bz;
+assign GPIO[3] = 1'bz;
+assign GPIO[5] = 1'bz;
+assign GPIO[7] = 1'bz;
+assign GPIO[9] = 1'bz;
+assign GPIO[11] = 1'bz;
+assign GPIO[13] = 1'bz;
+assign GPIO[15] = 1'bz;
+assign GPIO[17] = 1'bz;
+assign GPIO[19] = 1'bz;
+assign GPIO[21] = 1'bz;
+assign GPIO[23] = 1'bz;
+assign GPIO[25] = 1'bz;
+assign GPIO[27] = 1'bz;
+assign GPIO[29] = 1'bz;
+assign GPIO[31] = 1'bz;
 
-Debounce deb2(
-	.i_in(KEY[2]), // Stop
-	.i_rst_n(KEY[3]),
-	.i_clk(CLK_12M),
-	.o_neg(key2down) 
-);
+assign mic_data[0] = GPIO[1];
+assign mic_data[1] = GPIO[3];
+assign mic_data[2] = GPIO[5];
+assign mic_data[3] = GPIO[7];
+assign mic_data[4] = GPIO[9];
+assign mic_data[5] = GPIO[11];
+assign mic_data[6] = GPIO[13];
+assign mic_data[7] = GPIO[15];
+assign mic_data[8] = GPIO[17];
+assign mic_data[9] = GPIO[19];
+assign mic_data[10] = GPIO[21];
+assign mic_data[11] = GPIO[23];
+assign mic_data[12] = GPIO[25];
+assign mic_data[13] = GPIO[27];
+assign mic_data[14] = GPIO[29];
+assign mic_data[15] = GPIO[31];
+
+assign GPIO[0] = CLK_3p2M;
+assign GPIO[2] = CLK_3p2M;
+assign GPIO[4] = CLK_3p2M;
+assign GPIO[6] = CLK_3p2M;
+assign GPIO[8] = CLK_3p2M;
+assign GPIO[10] = CLK_3p2M;
+assign GPIO[12] = CLK_3p2M;
+assign GPIO[14] = CLK_3p2M;
+
+assign GPIO[16] = CLK_3p2M;
+assign GPIO[18] = CLK_3p2M;
+assign GPIO[20] = CLK_3p2M;
+assign GPIO[22] = CLK_3p2M;
+assign GPIO[24] = CLK_3p2M;
+assign GPIO[26] = CLK_3p2M;
+assign GPIO[28] = CLK_3p2M;
+assign GPIO[30] = CLK_3p2M;
 
 Top top0(
-	.i_rst_n(KEY[3]),
-	.i_clk(CLK_12M),
-	.i_key_0(key0down),
-	.i_key_1(key1down),
-	.i_key_2(key2down),
-	.i_speed(SW[4:0]), // design how user can decide mode on your own
-	
-	// AudDSP and SRAM
-	.o_SRAM_ADDR(SRAM_ADDR), // [19:0]
-	.io_SRAM_DQ(SRAM_DQ), // [15:0]
+	.i_50M_clk(CLOCK_50),
+	.i_BCLK(CLK_3p2M),
+	.i_LRCK(CLK_50k),
+	.i_rst(KEY[0]),
+	.i_start(KEY[1]),
+	.i_mic_data(mic_data),
+
+	.o_SRAM_ADDR(SRAM_ADDR),
+	.io_SRAM_DQ(SRAM_DQ), 
 	.o_SRAM_WE_N(SRAM_WE_N),
 	.o_SRAM_CE_N(SRAM_CE_N),
 	.o_SRAM_OE_N(SRAM_OE_N),
 	.o_SRAM_LB_N(SRAM_LB_N),
 	.o_SRAM_UB_N(SRAM_UB_N),
 	
-	// I2C
-	.i_clk_100k(CLK_100K),
-	.o_I2C_SCLK(I2C_SCLK),
-	.io_I2C_SDAT(I2C_SDAT),
-	
-	// AudPlayer
-	.i_AUD_ADCDAT(AUD_ADCDAT),
-	.i_AUD_ADCLRCK(AUD_ADCLRCK),
-	.i_AUD_BCLK(AUD_BCLK),
-	.i_AUD_DACLRCK(AUD_DACLRCK),
-	.o_AUD_DACDAT(AUD_DACDAT),
-	
-	.o_state(state),
-	
-	.o_addr_record(rec_addrress)
-	/*
-	.o_key_0(key_0),
-	
-	.o_top_counter(top_counter),
-	
-	.o_debug_100k_counter(debug_100k_counter),
-	
-	.o_debug_BCLK_counter(debug_BCLK_counter),
-	
-	.o_i2c_counter(i2c_counter),
-	
-	.o_ack(ack)*/
-
-	// SEVENDECODER (optional display)
-	// .o_record_time(recd_time),
-	// .o_play_time(play_time)
-
-	// LCD (optional display)
-	// .i_clk_800k(CLK_800K),
-	// .o_LCD_DATA(LCD_DATA), // [7:0]
-	// .o_LCD_EN(LCD_EN),
-	// .o_LCD_RS(LCD_RS),
-	// .o_LCD_RW(LCD_RW),
-	// .o_LCD_ON(LCD_ON),
-	// .o_LCD_BLON(LCD_BLON),
-
-	// LED
-	// .o_ledg(LEDG), // [8:0]
-	// .o_ledr(LEDR) // [17:0]
+	.VGA_R(VGA_R),
+	.VGA_G(VGA_G),
+	.VGA_B(VGA_B),
+	.VGA_BLANK_N(VGA_BLANK_N),
+	.VGA_CLK(VGA_CLK),
+	.VGA_HS(VGA_HS),
+	.VGA_SYNC_N(VGA_SYNC_N),
+	.VGA_VS(VGA_VS)
 );
-
+/*
 SevenHexDecoder seven_dec0(
 	.i_hex(state),
 	.o_seven_ten(HEX1),
@@ -252,41 +238,17 @@ SevenHexDecoder32 seven_dec1(
 	.i_hex(rec_addrress[19:15]),
 	.o_seven_ten(HEX3),
 	.o_seven_one(HEX2)
-);
-
-/*SevenHexDecoder seven_dec2(
-	.i_hex(rec_addrress[15:12]),
-	.o_seven_ten(HEX5),
-	.o_seven_one(HEX4)
 );*/
 
-/*SevenHexDecoder seven_dec3(
-	.i_hex(rec_addrress[19:16]),
-	.o_seven_ten(HEX7),
-	.o_seven_one(HEX6)
-);*/
-
-/*
-SevenHexDecoder seven_dec0(
-	.i_num(play_time),
-	.o_seven_ten(HEX1),
-	.o_seven_one(HEX0)
-);
-
-SevenHexDecoder seven_dec1(
-	.i_num(recd_time),
-	.o_seven_ten(HEX5),
- 	.o_seven_one(HEX4)
-);*/
 
 // comment those are use for display
 // assign HEX0 = '1;
 // assign HEX1 = '1;
 //assign HEX2 = '1;
 //assign HEX3 = '1;
-assign HEX4 = '1;
-assign HEX5 = '1;
-assign HEX6 = '1;
-assign HEX7 = '1;
+//assign HEX4 = '1;
+//assign HEX5 = '1;
+//assign HEX6 = '1;
+//assign HEX7 = '1;
 
 endmodule

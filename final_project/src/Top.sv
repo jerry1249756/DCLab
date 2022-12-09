@@ -36,7 +36,7 @@ module Top(
     input i_LRCK,
     input i_rst, //key[3]
     input i_start, //key[0]
-    input [`MIC_NUMBER-1:0] i_mic_data,
+    input i_mic_data [`MIC_NUMBER-1:0],
     //SRAM
 	output [19:0] o_SRAM_ADDR, //read/write address
 	inout  [15:0] io_SRAM_DQ,  //read/write 16bit data
@@ -119,7 +119,7 @@ Delta_generator delta_generator0(
 
 genvar idx;
 generate
-    for(idx=0;idx<`MIC_NUMBER;idx = idx+1) begin
+    for(idx=0;idx<`MIC_NUMBER;idx = idx+1) begin : PEs
         RingBuffer ring_buffer_generate(
             .i_clk(i_25M_clk),
             .i_BCLK(i_BCLK),
@@ -192,13 +192,19 @@ always_comb begin
                 initial_start = 1;
                 initial_start_25 = 1;
             end
-            else initial_start = 0;
+            else begin
+                initial_start = 0;
+                initial_start_25 = 1;
+            end
             if(frame_counter_r == `BUFFER_LENGTH - 1 && i_25M_clk) begin
                 calculate_start = 1;
                 calculate_start_25 = 1;
                 state_w = S_CALCULATE;
             end
-            else calculate_start = 0;
+            else begin
+                calculate_start = 0;
+                calculate_start_25 = 1;
+            end
         end
         S_CALCULATE: begin
             initial_start = 0;
