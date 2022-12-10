@@ -1,7 +1,7 @@
 module Coordinate_generator(
     input i_clk,
-    input signed [7:0] p_x,
-    input signed [7:0] p_y,
+    input signed [$clog2(`PIXEL_COLUMN)-1:0] p_x,
+    input signed [$clog2(`PIXEL_ROW)-1:0] p_y,
     output signed [8:0] real_x[15:0],
     output signed [8:0] real_y[15:0]
 );
@@ -137,8 +137,8 @@ endmodule
 
 module Delta_generator (
     input i_clk,
-    input signed [7:0] p_x,
-    input signed [7:0] p_y,
+    input signed [$clog2(`PIXEL_COLUMN)-1:0] p_x,
+    input signed [$clog2(`PIXEL_ROW)-1:0] p_y,
     output [7:0] delta[15:0]
 );
     
