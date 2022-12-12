@@ -7,28 +7,28 @@ module Coordinate_generator(
 );
     genvar idx;
     generate
-        for(idx=0; idx<4; idx=idx+1) begin
+        for(idx=0; idx<4; idx=idx+1) begin: Geny1
             assign real_y[idx] = p_y + 120;
         end
-        for(idx=4; idx<8; idx=idx+1) begin
+        for(idx=4; idx<8; idx=idx+1) begin: Geny2
             assign real_y[idx] = p_y + 40;
         end
-        for(idx=8; idx<12; idx=idx+1) begin
+        for(idx=8; idx<12; idx=idx+1) begin: Geny3
             assign real_y[idx] = p_y - 40;
         end
-        for(idx=12; idx<16; idx=idx+1) begin
+        for(idx=12; idx<16; idx=idx+1) begin: Geny4
             assign real_y[idx] = p_y - 120;
         end
-        for(idx=0; idx<16; idx=idx+4) begin
+        for(idx=0; idx<16; idx=idx+4) begin: Genx1
             assign real_x[idx] = p_x + 120;
         end
-        for(idx=1; idx<16; idx=idx+4) begin
+        for(idx=1; idx<16; idx=idx+4) begin: Genx2
             assign real_x[idx] = p_x + 40;
         end
-        for(idx=2; idx<16; idx=idx+4) begin
+        for(idx=2; idx<16; idx=idx+4) begin: Genx3
             assign real_x[idx] = p_x - 40;
         end
-        for(idx=3; idx<16; idx=idx+4) begin
+        for(idx=3; idx<16; idx=idx+4) begin: Genx4
             assign real_x[idx] = p_x - 120;
         end
     endgenerate
@@ -80,7 +80,7 @@ module mapping(
     logic [7:0] data_out;
     assign delta = data_out;
 
-    logic [18:0] parameter_array[0:31] = {19'd3844, 
+    logic [18:0] parameter_array[0:31] = '{19'd3844, 
     19'd12544, 19'd21316, 19'd29929, 19'd38809, 19'd47961, 19'd57121, 19'd66049, 19'd75076, 19'd84100, 19'd93636, 
     19'd103041, 19'd112225, 19'd121801, 19'd131044, 19'd140625, 19'd150544, 19'd160000, 19'd169744, 19'd179776, 
     19'd190096, 19'd199809, 19'd209764, 19'd219961, 19'd229441, 19'd240100, 19'd250000, 19'd260100, 19'd270400, 
@@ -89,7 +89,7 @@ module mapping(
     
     genvar i;
     generate
-        for(i=0; i<32; i=i+1) begin
+        for(i=0; i<32; i=i+1) begin: Gena
             assign a[i] = (num>parameter_array[i])? 1'b1 : 1'b0;
         end
     endgenerate
@@ -155,7 +155,7 @@ module Delta_generator (
 
     genvar idx;
     generate
-        for(idx=0; idx<16; idx=idx+1) begin
+        for(idx=0; idx<16; idx=idx+1) begin: Genr
             assign radius_square[idx] = real_x[idx]*real_x[idx] + real_y[idx]*real_y[idx];
         end
     endgenerate
