@@ -1,5 +1,6 @@
 module RingBuffer(
     input i_clk,
+    input i_fast_clk,
     input i_BCLK,
     input i_LRCK,
     input i_rst,
@@ -10,6 +11,7 @@ module RingBuffer(
     input [$clog2(`DELTA_LAST)-1:0] i_delta,
     output signed [`READBIT-1:0] o_L_buffer_data,
     output signed [`READBIT-1:0] o_buffer_data
+    //output [15:0] test
 );
 
 integer i;
@@ -29,22 +31,40 @@ logic signed [`READBIT-1:0] L_output_r, L_output_w;
 assign o_buffer_data = output_r;
 assign o_L_buffer_data = L_output_r;
 
+logic initial_start_r, initial_start_w;
+logic iterate_start_r, iterate_start_w;
+
+logic i_recorder_initial_start;
+assign i_recorder_initial_start = initial_start_r;
+
+//assign test = {14'b0,initial_start_r,iterate_start_r};
+
 Recorder recorder0(
     .i_clk(i_clk),
     .i_BCLK(i_BCLK),
     .i_LRCK(i_LRCK),
     .i_rst(i_rst),
-    .i_start(i_initial_start),
+    .i_start(i_recorder_initial_start),
     .i_data(i_data),
     .o_data(i_newrecord_data)
 );
+
+
+always_comb begin
+    initial_start_w = initial_start_r;
+    iterate_start_w = iterate_start_r;
+    if(i_initial_start) initial_start_w = 1;
+    if(i_iterate_start) iterate_start_w = 1;
+end
+
+
 
 //state
 always_comb begin
     state_w = state_r;
     case(state_r)
-        S_IDLE: if(i_initial_start) state_w = S_INITIAL;
-        S_INITIAL: if(i_iterate_start) state_w = S_ITERATE;
+        S_IDLE: if(initial_start_r) state_w = S_INITIAL;
+        S_INITIAL: if(iterate_start_r) state_w = S_ITERATE;
     endcase
 end
 
@@ -109,5 +129,18 @@ always@(posedge i_clk or posedge i_rst) begin
         L_output_r <= L_output_w;
 	end
 end
+
+always@(posedge i_fast_clk or posedge i_rst) begin
+	if(i_rst)begin
+        initial_start_r <= 0;
+        iterate_start_r <= 0;
+	end
+	else begin
+        initial_start_r <= initial_start_w;
+        iterate_start_r <= iterate_start_w;
+	end
+end
+
+
 
 endmodule

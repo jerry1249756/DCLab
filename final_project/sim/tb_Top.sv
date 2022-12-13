@@ -6,12 +6,12 @@ parameter	cycle = 10.0;
 parameter   bclk_cycle = 100.0;
 parameter	lr_cycle = 5800.0;
 
-parameter all1_16bit = 65535;   // parameter  all1_16bit = (1 << 16) - 1
+//parameter all1_16bit = 65535;   // parameter  all1_16bit = (1 << 16) - 1
 logic 		i_clk, i_bclk, i_lrck;
 logic       i_rst;
 logic       i_start;
 
-logic [15:0] random_data;
+logic random_data [15:0];
 logic [19:0] o_SRAM_ADDR, SRAM_address;
 wire [15:0] io_SRAM_DQ; 
 
@@ -22,6 +22,7 @@ logic SRAM_write;
 logic [7:0] VGA_R, VGA_G, VGA_B;
 logic VGA_BLANK_N, VGA_CLK, VGA_HS, VGA_SYNC_N, VGA_VS;
 
+integer i;
 
 initial i_clk = 0;
 always #(cycle/2.0) i_clk = ~i_clk;
@@ -70,7 +71,7 @@ SRAM SRAM0(
 
 
 initial begin	
-	#(lr_cycle*10000000);
+	#(lr_cycle*100000);
 	$finish;
 end
 
@@ -82,7 +83,9 @@ end
 
 initial begin
     forever begin
-        @(negedge i_clk) random_data = $urandom() & all1_16bit;
+        @(negedge i_clk) begin
+			for(i=0; i<16; i=i+1) random_data[i] = $urandom() & 1;
+		end
     end
 end
 

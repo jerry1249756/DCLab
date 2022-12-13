@@ -1,7 +1,7 @@
 `define L  32
 `define DELTA_START  147
-`define DELTA_LAST  178
-`define BUFFER_LENGTH  64//`L + `DELTA_LAST - `DELTA_START + 1
+`define DELTA_LAST  179
+`define BUFFER_LENGTH  65//`L + `DELTA_LAST - `DELTA_START + 1
 `define PIXEL_ROW  480
 `define PIXEL_COLUMN  640
 `define PIXEL_LENGTH  307200//`PIXEL_ROW * `PIXEL_COLUMN
@@ -75,13 +75,11 @@ logic [$clog2(`DELTA_LAST)-1 : 0] delta_array [`MIC_NUMBER-1 : 0];
 logic signed [`READBIT-1:0] L_buffer_data[`MIC_NUMBER-1 : 0];
 logic signed [`READBIT-1:0] buffer_data [`MIC_NUMBER-1 : 0];
 
-logic stop_r, stop_w;
+logic read_sram;
+logic stop;
 logic change_pointer_r, change_pointer_w;
 logic initial_start, calculate_start;
 logic initial_start_25, calculate_start_25;
-// logic calculate_start_25_r, calculate_start_25_w;
-// logic initial_start_counter_r, initial_start_counter_w;
-// logic calculate_start_counter_r, calculate_start_counter_w; 
 
 //for add&square
 logic [34:0] add_square_data, L_add_square_data;
@@ -96,10 +94,10 @@ Clock_Generate clock25_generate(
     .o_slow_25M_clk(i_25M_clk)
 );
 
-assign io_SRAM_DQ  = (i_25M_clk) ? sram_data_write : 16'dz; // sram_dq as output
-assign sram_data_read = (!i_25M_clk) ? io_SRAM_DQ : 16'd0; // sram_dq as input
+assign io_SRAM_DQ  = (!read_sram) ? sram_data_write : 16'dz; // sram_dq as output
+assign sram_data_read = (read_sram) ? io_SRAM_DQ : 16'd0; // sram_dq as input
 
-assign o_SRAM_WE_N = (i_25M_clk) ? 1'b0 : 1'b1;
+assign o_SRAM_WE_N = (!read_sram) ? 1'b0 : 1'b1;
 assign o_SRAM_CE_N = 1'b0;
 assign o_SRAM_OE_N = 1'b0;
 assign o_SRAM_LB_N = 1'b0;
@@ -122,11 +120,12 @@ generate
     for(idx=0;idx<`MIC_NUMBER;idx = idx+1) begin : PEs
         RingBuffer ring_buffer_generate(
             .i_clk(i_25M_clk),
+            .i_fast_clk(i_50M_clk),
             .i_BCLK(i_BCLK),
             .i_LRCK(i_LRCK),
             .i_rst(i_rst),
-            .i_initial_start(initial_start_25),
-            .i_iterate_start(calculate_start_25),
+            .i_initial_start(initial_start),
+            .i_iterate_start(calculate_start),
             .i_change_pointer(change_pointer_r),
             .i_data(i_mic_data[idx]),
             .i_delta(delta_array[idx]),
@@ -152,14 +151,15 @@ Average average0(
 	.i_rst(i_rst),
 	.i_init_valid(initial_start),
     .i_calc_valid(calculate_start),
-    .i_stop(stop_r),
+    .i_stop(stop),
     .i_px(pos_coordinate_x), //positive coordinate
     .i_py(pos_coordinate_y), //positive coordinate
 	.i_new_data(add_square_data), // this data has been divided by L
 	.i_old_data(L_add_square_data), // this data has been divided by L
     .i_sram_data_read(sram_data_read), // use when i_read_write = 0
 	.o_sram_data_write(sram_data_write), // use when i_read_write = 1
-	.o_SRAM_addr(o_SRAM_ADDR) //addr = 640x +y       
+	.o_SRAM_addr(o_SRAM_ADDR), //addr = 640x +y       
+	.o_read_sram(read_sram)
 );
 
 VGA vga0(
@@ -184,33 +184,22 @@ always_comb begin
             if(i_start && !i_25M_clk) state_w = S_INITIAL;
             initial_start = 0;
             calculate_start = 0;
-            initial_start_25 = 0;
-            calculate_start_25 = 0;
         end
+
         S_INITIAL: begin
-            if(row_counter_r == 0 && column_counter_r == 0 && frame_counter_r == 0 && i_25M_clk) begin
-                initial_start = 1;
-                initial_start_25 = 1;
-            end
-            else begin
-                initial_start = 0;
-                initial_start_25 = 1;
-            end
+            if(row_counter_r == 0 && column_counter_r == 0 && frame_counter_r == 0 && i_25M_clk) initial_start = 1;
+            else initial_start = 0;
+
             if(frame_counter_r == `BUFFER_LENGTH - 1 && i_25M_clk) begin
                 calculate_start = 1;
-                calculate_start_25 = 1;
                 state_w = S_CALCULATE;
             end
-            else begin
-                calculate_start = 0;
-                calculate_start_25 = 1;
-            end
+            else calculate_start = 0;
         end
+
         S_CALCULATE: begin
             initial_start = 0;
             calculate_start = 0;
-            initial_start_25 = 0;
-            calculate_start_25 = 1;
         end
     endcase
 end
@@ -253,17 +242,13 @@ always_comb begin
 end
 
 always_comb begin
-    stop_w = 0;
-    if(!i_25M_clk && row_counter_r < `V_VALID_LB || row_counter_r >= `V_VALID_UB-1 || column_counter_r < `H_VALID_LB || column_counter_r >= `H_VALID_UB-1) stop_w = 1;
+    stop = 0;
+    if(state_r != S_IDLE)begin
+			if(row_counter_r < `V_VALID_LB || row_counter_r >= `V_VALID_UB-1 || column_counter_r < `H_VALID_LB || column_counter_r >= `H_VALID_UB-1) stop = 1;
+	 end
+	 
 end
 
-// always_comb begin
-//     initial_start_counter_w = initial_start_counter_r;
-//     if(initial_start_25 == 1) initial_start_counter_w = initial_start_counter_r + 1;
-//     if(initial_start_counter_r == 1) initial_start_25 = 1;
-//     if()
-    
-// end
 
 always_ff @(posedge i_50M_clk or posedge i_rst) begin
 	if(i_rst)begin
@@ -271,7 +256,6 @@ always_ff @(posedge i_50M_clk or posedge i_rst) begin
         column_counter_r <= 0;
         row_counter_r <= 0;
         frame_counter_r <= 0;
-        stop_r <= 1;
         change_pointer_r <= 0;
 	end
 	else begin
@@ -279,7 +263,6 @@ always_ff @(posedge i_50M_clk or posedge i_rst) begin
         column_counter_r <= column_counter_w ;
         row_counter_r <= row_counter_w;
         frame_counter_r <= frame_counter_w;
-        stop_r <= stop_w;
         change_pointer_r <= change_pointer_w;
 	end
 end

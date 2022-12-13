@@ -1,5 +1,4 @@
 module Coordinate_generator(
-    input i_clk,
     input signed [$clog2(`PIXEL_COLUMN)-1:0] p_x,
     input signed [$clog2(`PIXEL_ROW)-1:0] p_y,
     output signed [8:0] real_x[15:0],
@@ -136,7 +135,6 @@ module mapping(
 endmodule
 
 module Delta_generator (
-    input i_clk,
     input signed [$clog2(`PIXEL_COLUMN)-1:0] p_x,
     input signed [$clog2(`PIXEL_ROW)-1:0] p_y,
     output [7:0] delta[15:0]
@@ -146,7 +144,6 @@ module Delta_generator (
     logic [18:0] radius_square[15:0];
 
     Coordinate_generator c0(
-        .i_clk(i_clk),
         .p_x(p_x),
         .p_y(p_y),
         .real_x(real_x),
