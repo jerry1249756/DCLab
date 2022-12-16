@@ -52,6 +52,9 @@ module VGA(
 	 localparam maximum = 16'b1111_1111_1111_1111; 
 	 localparam half = (minimum + maximum) / 2;
 
+     localparam onefour = 16'b1111_1111_1111_1111 >> 2; 
+     localparam threefour = onefour + half; 
+
     // Output assignment
     assign o_VGA_CLK      =   i_clk_25M;
     assign o_VGA_HS       =   hsync_r;
@@ -173,7 +176,7 @@ module VGA(
 							  vga_g_w = 8'd0;
 							  vga_b_w = 8'd0;						  
 						  end*/
-						  if(i_display_data >= minimum && half >= i_display_data) begin
+						  /*if(i_display_data >= minimum && half >= i_display_data) begin
 								vga_r_w = 0;
 								vga_g_w = ((16'd255)*i_display_data - (16'd255)*minimum)/(half - minimum);
 								vga_b_w = 16'd255 - ((16'd255)*i_display_data - (16'd255)*minimum)/(half - minimum);
@@ -182,7 +185,28 @@ module VGA(
 								vga_r_w = ((16'd255)*i_display_data - (16'd255)*half)/(maximum - half);
 								vga_g_w = 16'd255 - ((16'd255)*i_display_data - (16'd255)*half)/(maximum - half);
 								vga_b_w = 0;
+						  end*/
+                          if(i_display_data >= minimum && i_display_data <= onefour) begin
+								vga_r_w = 0;
+								vga_g_w = 0;
+								vga_b_w = (16'd200 - 16'd32) * (i_display_data - 16'd0) / (onefour - 16'd0) + 16'32;
 						  end
+						  else if (i_display_data > onefour && i_display_data <= half)begin
+								vga_r_w = 0;
+								vga_g_w = (16'd200 - 16'd32) * (i_display_data - onefour) / (half - onefour) + 16'32;
+								vga_b_w = (16'd32 - 16'd200) * (i_display_data - onefour) / (half - onefour) + 16'200;
+						  end
+                          else if (i_display_data > half && i_display_data <= threefour)begin
+								vga_r_w = (16'd200 - 16'd32) * (i_display_data - half) / (threefour - half) + 16'32;
+								vga_g_w = (16'd32 - 16'd200) * (i_display_data - half) / (threefour - half) + 16'200;;
+								vga_b_w = 0;
+						  end
+                          else if (i_display_data > threefour && i_display_data <= maximum)begin
+								vga_r_w = (16'd32 - 16'd200) * (i_display_data - threefour) / (maximum - threefour) + 16'200;;
+								vga_g_w = 0;
+								vga_b_w = 0;
+						  end
+
                 end
             end
         endcase
