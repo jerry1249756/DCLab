@@ -226,6 +226,7 @@ always_comb begin
                     column_counter_w = column_counter_r + 1;
                     row_counter_w = row_counter_r;
                 end
+                
                 if(row_counter_r == `V_TOTAL) begin
                     row_counter_w = 0;
                     change_pointer_w = 1;

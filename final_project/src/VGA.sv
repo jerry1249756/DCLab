@@ -10,7 +10,8 @@ module VGA(
 	output [7:0] o_VGA_R,
 	output o_VGA_SYNC_N,
 	output o_VGA_VS,
-	input [15:0] i_display_data
+	input [15:0] i_display_data,
+    output o_finish
 );
 
     // Variable definition
@@ -25,7 +26,7 @@ module VGA(
     
     // 640*480, refresh rate 60Hz
     // VGA clock rate 25.175MHz
-    localparam H_SYNC   =   96;
+    localparam H_SYNC   =   146;
     localparam H_BACK   =   40;
 	 localparam H_LEFT   =   8;
     localparam H_ACT    =   640;
@@ -66,6 +67,9 @@ module VGA(
     assign o_VGA_BLANK_N  =   1'b1;
 
     assign i_start_display = 1'b1;
+
+    logic finish;
+    assign o_finish = finish;
     
     // Coordinates
     always_comb begin
@@ -88,16 +92,20 @@ module VGA(
         case(state_r)
             S_IDLE: begin
                 v_counter_w = 0;
+                finish = 1'b0;
             end
             S_DISPLAY: begin
                 if (v_counter_r == 525) begin
                     v_counter_w = 0;
+                    finish = 1'b1;
                 end
                 else if (h_counter_r == 10'd800) begin
                     v_counter_w = v_counter_r + 1;
+                    finish = 1'b0;
                 end
                 else begin
                     v_counter_w = v_counter_r;
+                    finish = 1'b0;
                 end
             end
         endcase
@@ -166,47 +174,52 @@ module VGA(
                 end
                 else begin
                     addr_display_w = addr_display_r + 20'd1;
-						  /*if(h_counter_r < (H_VALID_LB + 100) || h_counter_r > (H_TOTAL - 100)) begin
-							  vga_r_w = 8'd200;
-							  vga_g_w = 8'd200;
-							  vga_b_w = 8'd200;
-						  end
-						  else begin
-							  vga_r_w = 8'd0;
-							  vga_g_w = 8'd0;
-							  vga_b_w = 8'd0;						  
-						  end*/
-						  /*if(i_display_data >= minimum && half >= i_display_data) begin
-								vga_r_w = 0;
-								vga_g_w = ((16'd255)*i_display_data - (16'd255)*minimum)/(half - minimum);
-								vga_b_w = 16'd255 - ((16'd255)*i_display_data - (16'd255)*minimum)/(half - minimum);
-						  end
-						  else begin
-								vga_r_w = ((16'd255)*i_display_data - (16'd255)*half)/(maximum - half);
-								vga_g_w = 16'd255 - ((16'd255)*i_display_data - (16'd255)*half)/(maximum - half);
-								vga_b_w = 0;
-						  end*/
-                          if(i_display_data >= minimum && i_display_data <= onefour) begin
-								vga_r_w = 0;
-								vga_g_w = 0;
-								vga_b_w = (16'd200 - 16'd32) * (i_display_data - 16'd0) / (onefour - 16'd0) + 16'32;
-						  end
-						  else if (i_display_data > onefour && i_display_data <= half)begin
-								vga_r_w = 0;
-								vga_g_w = (16'd200 - 16'd32) * (i_display_data - onefour) / (half - onefour) + 16'32;
-								vga_b_w = (16'd32 - 16'd200) * (i_display_data - onefour) / (half - onefour) + 16'200;
-						  end
-                          else if (i_display_data > half && i_display_data <= threefour)begin
-								vga_r_w = (16'd200 - 16'd32) * (i_display_data - half) / (threefour - half) + 16'32;
-								vga_g_w = (16'd32 - 16'd200) * (i_display_data - half) / (threefour - half) + 16'200;;
-								vga_b_w = 0;
-						  end
-                          else if (i_display_data > threefour && i_display_data <= maximum)begin
-								vga_r_w = (16'd32 - 16'd200) * (i_display_data - threefour) / (maximum - threefour) + 16'200;;
-								vga_g_w = 0;
-								vga_b_w = 0;
-						  end
-
+                    /*
+					if(h_counter_r < (H_VALID_LB + i_display_data) || h_counter_r > (H_TOTAL - i_display_data)) begin
+						vga_r_w = 8'd200;
+						vga_g_w = 8'd200;
+						vga_b_w = 8'd200;
+					end
+					else begin
+						vga_r_w = 8'd0;
+						vga_g_w = 8'd0;
+						vga_b_w = 8'd0;						  
+					end
+                    */
+                    
+					if(i_display_data >= minimum && half >= i_display_data) begin
+						vga_r_w = 0;
+						vga_g_w = ((16'd255)*i_display_data - (16'd255)*minimum)/(half - minimum);
+						vga_b_w = 16'd255 - ((16'd255)*i_display_data - (16'd255)*minimum)/(half - minimum);
+					end
+					else begin
+						vga_r_w = ((16'd255)*i_display_data - (16'd255)*half)/(maximum - half);
+						vga_g_w = 16'd255 - ((16'd255)*i_display_data - (16'd255)*half)/(maximum - half);
+						vga_b_w = 0;
+					end
+                    
+                    /*
+                    if(i_display_data >= minimum && i_display_data <= onefour) begin
+						vga_r_w = 0;
+						vga_g_w = 0;
+						vga_b_w = (8'd200 - 8'd32) * (i_display_data - 8'd0) / (onefour - 8'd0) + 8'd32;
+					end
+					else if (i_display_data > onefour && i_display_data <= half) begin
+						vga_r_w = 0;
+						vga_g_w = (8'd200 - 8'd32) * (i_display_data - onefour) / (half - onefour) + 8'd32;
+						vga_b_w = (8'd32 - 8'd200) * (i_display_data - onefour) / (half - onefour) + 8'd200;
+					end
+                    else if (i_display_data > half && i_display_data <= threefour) begin
+						vga_r_w = (8'd200 - 8'd32) * (i_display_data - half) / (threefour - half) + 8'd32;
+						vga_g_w = (8'd32 - 8'd200) * (i_display_data - half) / (threefour - half) + 8'd200;
+						vga_b_w = 0;
+					end
+                    else begin
+						vga_r_w = (8'd32 - 8'd200) * (i_display_data - threefour) / (maximum - threefour) + 8'd200;
+						vga_g_w = 0;
+						vga_b_w = 0;
+					end
+                    */
                 end
             end
         endcase
