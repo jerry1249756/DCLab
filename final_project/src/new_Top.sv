@@ -7,8 +7,8 @@
 `define DELTA_START  147
 `define DELTA_LAST  179
 `define BUFFER_LENGTH  64//`L + `DELTA_LAST - `DELTA_START + 1
-`define PIXEL_ROW  60
-`define PIXEL_COLUMN  80
+`define PIXEL_ROW  45
+`define PIXEL_COLUMN  60
 `define PIXEL_LENGTH  307200//`PIXEL_ROW * `PIXEL_COLUMN
 `define MIC_NUMBER 16
 `define READBIT 24
@@ -52,7 +52,9 @@ module Top(
     output VGA_CLK,
     output VGA_HS,
     output VGA_SYNC_N,
-    output VGA_VS
+    output VGA_VS,
+	 
+	 output [1:0] o_state
 );
 
 localparam S_IDLE = 0;
@@ -108,6 +110,8 @@ logic [15:0]  SRAM_read_data     [`SRAM_PARALLEL-1:0];
 //VGA
 logic VGA_finish;
 logic VGA_start_display;
+
+assign o_state = state_r;
 
 genvar delta_concate_idx;
 generate
@@ -234,7 +238,7 @@ VGA VGA0(
 
 genvar en_idx;
 generate
-    for(en_idx=0; en_idx<`PARALLEL; en_idx=en_idx+1) begin
+    for(en_idx=0; en_idx<`PARALLEL; en_idx=en_idx+1) begin : SRAMwrite
         assign SRAM_write_enable[en_idx] = ((state_r == S_ITERATE) && (counter_50M_clk_r < ((`PIXEL_COLUMN)*(`PIXEL_ROW) / 5 + 1)) && (counter_50M_clk_r > 0)) ? 1'b1 : 1'b0;
     end
 endgenerate 
