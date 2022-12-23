@@ -145,7 +145,7 @@ always@(posedge i_50M_clk or posedge i_rst) begin
 	if(i_rst)begin
         state_r <= 0;
         change_state_flag_r <= 0;
-        for(i=0; i<`PARALLEL; i=i+1) buffer_output_w[i] <= 0;
+        for(i=0; i<`PARALLEL; i=i+1) buffer_output_r[i] <= 0;
         // for(i=0; i<`PARALLEL; i=i+1) L_buffer_output_w[i] <= 0;
 	end
 	else begin
