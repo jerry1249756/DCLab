@@ -1,3 +1,5 @@
+`define PARALLEL 5
+
 module deconcatenate(
     input [24*`PARALLEL-1:0] i_before_con,
     output [23:0] o_parallel1,

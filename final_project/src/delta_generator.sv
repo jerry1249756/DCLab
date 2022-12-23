@@ -1,3 +1,6 @@
+`define PIXEL_ROW  60
+`define PIXEL_COLUMN  80
+
 module Coordinate_generator(
     input signed [$clog2(`PIXEL_COLUMN)-1:0] p_x,
     input signed [$clog2(`PIXEL_ROW)-1:0] p_y,

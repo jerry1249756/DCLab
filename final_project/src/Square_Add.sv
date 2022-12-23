@@ -1,3 +1,6 @@
+`define MIC_NUMBER 16
+`define READBIT 24
+
 module Add_Square(
 	input signed [`READBIT-1:0] i_data [`MIC_NUMBER-1:0],
 	output       [34:0]           o_add_square_data                

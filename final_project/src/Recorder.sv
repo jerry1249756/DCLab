@@ -1,3 +1,5 @@
+`define READBIT 24
+
 module Recorder(
     input i_clk,
     input i_BCLK,

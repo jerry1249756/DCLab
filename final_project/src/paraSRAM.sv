@@ -6,6 +6,8 @@ need to define proper  NUM_PARALLEL inside the module.
 */
 
 `define SRAM_PARALLEL  6
+`define PIXEL_ROW  60
+`define PIXEL_COLUMN  80
 
 module paraSRAM (
     input         i_clk,

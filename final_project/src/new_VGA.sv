@@ -1,3 +1,6 @@
+`define PIXEL_ROW  60
+`define PIXEL_COLUMN  80
+
 module VGA(
     //de2-115
    input  i_rst,
