@@ -16,7 +16,7 @@ logic [4:0] counter_r, counter_w;
 logic signed [23:0] data_r, data_w;
 logic signed [23:0] o_data_r, o_data_w;
 
-assign o_data = o_data_r[23-:`READBIT];
+assign o_data = o_data_w[23-:`READBIT];
 
 //state
 always_comb begin
