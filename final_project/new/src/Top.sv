@@ -56,7 +56,9 @@ module Top(
     output VGA_CLK,
     output VGA_HS,
     output VGA_SYNC_N,
-    output VGA_VS
+    output VGA_VS,
+	 
+	 output [1:0] o_state
 );
 
 localparam S_IDLE = 0;
@@ -115,6 +117,8 @@ assign sram_data_write = (state_r == S_CALCULATE && !read_writeb_r) ? add_square
 assign o_SRAM_ADDR = (state_r == S_CALCULATE) ? ((read_writeb_r) ? column_counter_r + row_counter_r*`PIXEL_COLUMN : column_counter_d_r + row_counter_d_r*`PIXEL_COLUMN) : VGA_ADDR;
 
 assign add_square_sram_read = (L_counter_r == 0) ? 16'b0 : sram_data_read;
+
+assign o_state = state_r;
 
 Delta_generator delta_generator0(
     .p_x(sign_coordinate_x),
