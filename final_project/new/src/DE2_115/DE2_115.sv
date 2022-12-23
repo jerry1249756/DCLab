@@ -149,58 +149,60 @@ altpll pll0( // generate with qsys, please follow lab2 tutorials
 
 // you can decide key down settings on your own, below is just an example
 
-logic mic_data [0 : `MIC_NUMBER-1];
+logic mic_data [15: 0];
+assign GPIO[0] = 1'bz;
 assign GPIO[1] = 1'bz;
+assign GPIO[2] = 1'bz;
 assign GPIO[3] = 1'bz;
+assign GPIO[4] = 1'bz;
 assign GPIO[5] = 1'bz;
+assign GPIO[6] = 1'bz;
 assign GPIO[7] = 1'bz;
-assign GPIO[9] = 1'bz;
-assign GPIO[11] = 1'bz;
-assign GPIO[13] = 1'bz;
-assign GPIO[15] = 1'bz;
-assign GPIO[17] = 1'bz;
-assign GPIO[19] = 1'bz;
-assign GPIO[21] = 1'bz;
-assign GPIO[23] = 1'bz;
-assign GPIO[25] = 1'bz;
-assign GPIO[27] = 1'bz;
+assign GPIO[28] = 1'bz;
 assign GPIO[29] = 1'bz;
+assign GPIO[30] = 1'bz;
 assign GPIO[31] = 1'bz;
+assign GPIO[32] = 1'bz;
+assign GPIO[33] = 1'bz;
+assign GPIO[34] = 1'bz;
+assign GPIO[35] = 1'bz;
 
-assign mic_data[0] = GPIO[1];
-assign mic_data[1] = GPIO[3];
-assign mic_data[2] = GPIO[5];
-assign mic_data[3] = GPIO[7];
-assign mic_data[4] = GPIO[9];
-assign mic_data[5] = GPIO[11];
-assign mic_data[6] = GPIO[13];
-assign mic_data[7] = GPIO[15];
-assign mic_data[8] = GPIO[17];
-assign mic_data[9] = GPIO[19];
-assign mic_data[10] = GPIO[21];
-assign mic_data[11] = GPIO[23];
-assign mic_data[12] = GPIO[25];
-assign mic_data[13] = GPIO[27];
-assign mic_data[14] = GPIO[29];
-assign mic_data[15] = GPIO[31];
+assign mic_data[14] = GPIO[0];
+assign mic_data[15] = GPIO[1];
+assign mic_data[12] = GPIO[2];
+assign mic_data[13] = GPIO[3];
+assign mic_data[10] = GPIO[4];
+assign mic_data[11] = GPIO[5];
+assign mic_data[8] = GPIO[6];
+assign mic_data[9] = GPIO[7];
+assign mic_data[6] = GPIO[28];
+assign mic_data[7] = GPIO[29];
+assign mic_data[4] = GPIO[30];
+assign mic_data[5] = GPIO[31];
+assign mic_data[2] = GPIO[32];
+assign mic_data[3] = GPIO[33];
+assign mic_data[0] = GPIO[34];
+assign mic_data[1] = GPIO[35];
 
-assign GPIO[0] = CLK_3p2M;
-assign GPIO[2] = CLK_3p2M;
-assign GPIO[4] = CLK_3p2M;
-assign GPIO[6] = CLK_3p2M;
-assign GPIO[8] = CLK_3p2M;
+//LR
+assign GPIO[11] = CLK_50k;
+assign GPIO[13] = CLK_50k;
+assign GPIO[15] = CLK_50k;
+assign GPIO[17] = CLK_50k;
+assign GPIO[19] = CLK_50k;
+assign GPIO[21] = CLK_50k;
+assign GPIO[23] = CLK_50k;
+assign GPIO[25] = CLK_50k;
+
+//BC
 assign GPIO[10] = CLK_3p2M;
 assign GPIO[12] = CLK_3p2M;
 assign GPIO[14] = CLK_3p2M;
-
 assign GPIO[16] = CLK_3p2M;
 assign GPIO[18] = CLK_3p2M;
 assign GPIO[20] = CLK_3p2M;
 assign GPIO[22] = CLK_3p2M;
 assign GPIO[24] = CLK_3p2M;
-assign GPIO[26] = CLK_3p2M;
-assign GPIO[28] = CLK_3p2M;
-assign GPIO[30] = CLK_3p2M;
 
 logic [1:0] state;
 
