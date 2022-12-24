@@ -56,9 +56,7 @@ module Top(
     output VGA_CLK,
     output VGA_HS,
     output VGA_SYNC_N,
-    output VGA_VS,
-	 
-	 output [1:0] o_state
+    output VGA_VS
 );
 
 localparam S_IDLE = 0;
@@ -118,8 +116,6 @@ assign o_SRAM_ADDR = (state_r == S_CALCULATE) ? ((read_writeb_r) ? column_counte
 
 assign add_square_sram_read = (L_counter_r == 0) ? 16'b0 : sram_data_read;
 
-assign o_state = state_r;
-
 Delta_generator delta_generator0(
     .p_x(sign_coordinate_x),
     .p_y(sign_coordinate_y),
@@ -174,6 +170,10 @@ always_comb begin
     read_writeb_w = ~read_writeb_r;
     column_counter_d_w = column_counter_r;
     row_counter_d_w = row_counter_r;
+    case(state_r)
+
+        S_VGA: read_writeb_w = 1;
+    endcase
 end
 
 always_comb begin
@@ -184,7 +184,7 @@ always_comb begin
             if(ringbuffer_initial_finish[0] && read_writeb_r) state_w = S_CALCULATE;
         end
         S_CALCULATE: begin
-            if(L_counter_r == `L-1 && counter_50M_clk_r == (`PIXEL_COLUMN*`PIXEL_ROW*`L - 1)) state_w = S_VGA;
+            if(L_counter_r == `L-1 && counter_50M_clk_r == (`PIXEL_COLUMN*`PIXEL_ROW*`L - 1) && read_writeb_r) state_w = S_VGA;
         end
         S_VGA: begin
         end
@@ -197,11 +197,13 @@ always_comb begin
     change_pointer = 0;
     counter_50M_clk_w = counter_50M_clk_r;
     VGA_start_display = 0;
+    L_counter_w = L_counter_r;
     case(state_r) 
         S_IDLE, S_RECORD: begin
             column_counter_w = 0;
             row_counter_w = 0;
             counter_50M_clk_w = 0;
+            L_counter_w = 0;
         end
         S_CALCULATE: begin
             if(read_writeb_r)begin
@@ -216,21 +218,23 @@ always_comb begin
                 if(row_counter_r == `PIXEL_ROW - 1 && column_counter_r == `PIXEL_COLUMN - 1)begin
                     row_counter_w = 0;
                     change_pointer = 1;
+                    L_counter_w = L_counter_r + 1;
                 end
             end
         end
         S_VGA: begin
             counter_50M_clk_w = 0;
             VGA_start_display = 1;
+            L_counter_w = 0;
         end
     endcase
 end
 
-always_comb begin
-    L_counter_w = L_counter_r;
-    if(state_r == S_CALCULATE) L_counter_w = L_counter_r + 1;
-    else L_counter_w = 0;
-end
+// always_comb begin
+//     L_counter_w = L_counter_r;
+//     if(state_r == S_CALCULATE) L_counter_w = L_counter_r + 1;
+//     else L_counter_w = 0;
+// end
 
 
 
@@ -245,6 +249,7 @@ always_ff @ (posedge i_50M_clk or posedge i_rst) begin
         counter_50M_clk_r <= 0;
         column_counter_d_r <= 0;
         row_counter_d_r <= 0;
+        L_counter_r <= 0;
     end
     else begin
         read_writeb_r <= read_writeb_w;
@@ -254,15 +259,16 @@ always_ff @ (posedge i_50M_clk or posedge i_rst) begin
         counter_50M_clk_r <= counter_50M_clk_w;
         column_counter_d_r <= column_counter_d_w;
         row_counter_d_r <= row_counter_d_w;
-    end
-end
-always_ff @ (posedge i_LRCK or posedge i_rst) begin
-    if(i_rst) begin
-        L_counter_r <= 0;
-    end
-    else begin
         L_counter_r <= L_counter_w;
     end
 end
+// always_ff @ (posedge i_LRCK or posedge i_rst) begin
+//     if(i_rst) begin
+//         L_counter_r <= 0;
+//     end
+//     else begin
+//         L_counter_r <= L_counter_w;
+//     end
+// end
 
 endmodule

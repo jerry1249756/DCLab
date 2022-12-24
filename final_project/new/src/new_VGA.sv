@@ -69,8 +69,8 @@ module VGA(
     assign o_VGA_SYNC_N   =   1'b0;
     assign o_VGA_BLANK_N  =   1'b1;
 
-    assign  hsync_r = (h_counter_r  <  H_SYNC ) ? 1'b0 : 1'b1;
-    assign  vsync_r = (v_counter_r  <  V_SYNC ) ? 1'b0 : 1'b1;
+    assign  hsync_r = (h_counter_r  <  H_SYNC && state_r == S_DISPLAY) ? 1'b0 : 1'b1;
+    assign  vsync_r = (v_counter_r  <  V_SYNC && state_r == S_DISPLAY) ? 1'b0 : 1'b1;
     logic finish;
     assign o_finish = finish;
     assign o_access_address = access_address;
