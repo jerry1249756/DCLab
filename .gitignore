@@ -61,16 +61,34 @@
 
 
 
-/final_project/new/sim/BSSLib.lib++/
-/final_project/new/sim/INCA_libs/
-/final_project/new/sim/nWaveLog/
-/final_project/new/sim/INCA_libs/
-/final_project/new/sim/nWaveLog/
-/final_project/new/sim/tb_TOP.fsdb.chain
-/final_project/new/sim/tb_TOP.fsdb.lock
-/final_project/new/sim/tb_TOP.fsdb.sinf
-/final_project/new/sim/tb_TOP.fsdb.slist
-/final_project/new/sim/tb_TOP.fsdb.slock
-/final_project/new/sim/tb_TOP.fsdb.str
-/final_project/new/sim/tb_TOP.fsdb.tlist
-/final_project/new/sim/tb_TOP.fsdb.xlist
+/final_project/OnePhoto/sim/BSSLib.lib++/
+/final_project/OnePhoto/sim/INCA_libs/
+/final_project/OnePhoto/sim/nWaveLog/
+/final_project/OnePhoto/sim/INCA_libs/
+/final_project/OnePhoto/sim/nWaveLog/
+/final_project/OnePhoto/sim/tb_TOP.fsdb.chain
+/final_project/OnePhoto/sim/tb_TOP.fsdb.lock
+/final_project/OnePhoto/sim/tb_TOP.fsdb.sinf
+/final_project/OnePhoto/sim/tb_TOP.fsdb.slist
+/final_project/OnePhoto/sim/tb_TOP.fsdb.slock
+/final_project/OnePhoto/sim/tb_TOP.fsdb.str
+/final_project/OnePhoto/sim/tb_TOP.fsdb.tlist
+/final_project/OnePhoto/sim/tb_TOP.fsdb.xlist
+
+
+
+
+
+/final_project/RealTime/sim/BSSLib.lib++/
+/final_project/RealTime/sim/INCA_libs/
+/final_project/RealTime/sim/nWaveLog/
+/final_project/RealTime/sim/INCA_libs/
+/final_project/RealTime/sim/nWaveLog/
+/final_project/RealTime/sim/tb_TOP.fsdb.chain
+/final_project/RealTime/sim/tb_TOP.fsdb.lock
+/final_project/RealTime/sim/tb_TOP.fsdb.sinf
+/final_project/RealTime/sim/tb_TOP.fsdb.slist
+/final_project/RealTime/sim/tb_TOP.fsdb.slock
+/final_project/RealTime/sim/tb_TOP.fsdb.str
+/final_project/RealTime/sim/tb_TOP.fsdb.tlist
+/final_project/RealTime/sim/tb_TOP.fsdb.xlist
