@@ -1,6 +1,6 @@
 `define MIC_NUMBER 16
 `define READBIT 24
-`define TRUNCATE_BIT 38
+`define TRUNCATE_BIT 23
 
 module Add_Square(
 	input i_clk,

@@ -57,7 +57,6 @@ module Top(
     output VGA_HS,
     output VGA_SYNC_N,
     output VGA_VS
-
 );
 
 localparam S_IDLE = 0;
@@ -100,10 +99,10 @@ logic VGA_color_finish;
 logic [19:0] VGA_ADDR;
 logic VGA_color_blackb_r, VGA_color_blackb_w;
 
-assign io_SRAM_DQ  = (!read_writeb_r && state_r == S_CALCULATE) ? sram_data_write : 16'dz; // sram_dq as output
+assign io_SRAM_DQ  = (!read_writeb_r && state_r == S_CALCULATE && L_counter_r < `L) ? sram_data_write : 16'dz; // sram_dq as output
 assign sram_data_read = (read_writeb_r && (state_r == S_CALCULATE || state_r == S_VGA)) ? io_SRAM_DQ : 16'd0; // sram_dq as input
 
-assign o_SRAM_WE_N = (!read_writeb_r && L_counter_r <`L) ? 1'b0 : 1'b1;
+assign o_SRAM_WE_N = (!read_writeb_r && state_r == S_CALCULATE && L_counter_r < `L) ? 1'b0 : 1'b1;
 assign o_SRAM_CE_N = 1'b0;
 assign o_SRAM_OE_N = 1'b0;
 assign o_SRAM_LB_N = 1'b0;
@@ -226,7 +225,7 @@ always_comb begin
                 else begin
                     column_counter_w = column_counter_r + 1;
                 end
-                if(row_counter_r == `PIXEL_ROW - 1 && column_counter_r == `PIXEL_COLUMN - 1)begin
+                if(row_counter_r == `PIXEL_ROW - 1 && column_counter_r == `PIXEL_COLUMN - 1 )begin
                     row_counter_w = 0;
                     if(L_counter_r != `L) L_counter_w = L_counter_r + 1;
                 end

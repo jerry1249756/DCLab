@@ -93,7 +93,7 @@ always_comb begin
         S_ITERATE: begin
             change_state_flag_w = 0;
             pointer_w = 0;
-            if(i_change_pointer && iterate_pointer_r < `L-1) iterate_pointer_w = iterate_pointer_r + 1;
+            if(i_change_pointer && iterate_pointer_r < (`L - 1)) iterate_pointer_w = iterate_pointer_r + 1;
         end
         S_CLEAR: begin
             pointer_w = 0;
