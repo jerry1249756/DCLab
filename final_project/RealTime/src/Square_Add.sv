@@ -1,6 +1,7 @@
 `define MIC_NUMBER 16
 `define READBIT 24
 `define TRUNCATE_BIT 23
+`define L 32 ////// only use 2^x 
 
 module Add_Square(
 	input i_clk,
@@ -19,7 +20,7 @@ module Add_Square(
     logic signed [`READBIT + 3:0] sum;
     logic signed [`READBIT + 1:0] sum_part[3:0];
 	logic signed [(`READBIT+4)*2-1:0] add_square;
-    logic [(`READBIT+4)*2-7:0] temp_shift_output;
+    logic [(`READBIT+4)*2-2-$clog2(`L):0] temp_shift_output;
 
     assign sum_part[0] = i_data[0] + i_data[1] + i_data[2] + i_data[3];
     assign sum_part[1] = i_data[4] + i_data[5] + i_data[6] + i_data[7];
@@ -28,7 +29,7 @@ module Add_Square(
     assign sum = sum_part[0] + sum_part[1] + sum_part[2] + sum_part[3];
 	assign add_square = sum * sum;
     
-	assign temp_shift_output = add_square[(`READBIT+4)*2-2:5];
+	assign temp_shift_output = add_square[(`READBIT+4)*2-2:$clog2(`L)];
 
 
     logic [15+`TRUNCATE_BIT : 0] temp_data;
