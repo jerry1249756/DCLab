@@ -1,0 +1,7 @@
+pixel cloumn 60
+pixel row 45
+real column 60
+real row 45
+truncate bit 22
+L 32
+distance 50
