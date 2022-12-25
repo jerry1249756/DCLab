@@ -1,7 +1,7 @@
 pixel cloumn 120
 pixel row 90
-real column 100
-real row 75
-truncate bit 22
+real column 120
+real row 90
+truncate bit 21
 L 32
 distance 50
