@@ -18,21 +18,21 @@ logic [4:0] counter_r, counter_w;
 logic signed [23:0] data_r, data_w;
 logic signed [23:0] o_data_r, o_data_w;
 
-// assign o_data = o_data_r[23-:`READBIT];
+assign o_data = o_data_r[23-:`READBIT];
 
-logic signed [23:0] BandPassInput; 
-logic signed [23:0] BandPassOutput;
-assign BandPassInput = o_data_r;
-assign o_data = BandPassOutput;//{BandPassOutput[36], BandPassOutput[34:12]}; 
+// logic signed [23:0] BandPassInput; 
+// logic signed [23:0] BandPassOutput;
+// assign BandPassInput = o_data_r;
+// assign o_data = BandPassOutput;//{BandPassOutput[36], BandPassOutput[34:12]}; 
 
 
-filter bandpass0(
-    .i_clk(i_clk),
-    .i_clk_en(1'b1),
-    .i_rst(i_rst),
-    .filter_in(BandPassInput),
-    .filter_out(BandPassOutput)
-);
+// filter bandpass0(
+//     .i_clk(i_clk),
+//     .i_clk_en(1'b1),
+//     .i_rst(i_rst),
+//     .filter_in(BandPassInput),
+//     .filter_out(BandPassOutput)
+// );
 
 
 
