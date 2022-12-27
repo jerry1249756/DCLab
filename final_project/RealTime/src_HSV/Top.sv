@@ -263,16 +263,6 @@ always_comb begin
     endcase
 end
 
-// always_comb begin
-//     L_counter_w = L_counter_r;
-//     if(state_r == S_CALCULATE) L_counter_w = L_counter_r + 1;
-//     else L_counter_w = 0;
-// end
-
-
-
-
-
 always_ff @ (posedge i_50M_clk or posedge i_rst) begin
     if(i_rst) begin
         read_writeb_r <= 0;

@@ -1,5 +1,5 @@
-//////.new version
-//////////////////////////////Open when you need testbench 
+// Ring buffer that store mic data //
+
 `define L  32
 `define DELTA_START  74
 `define DELTA_LAST  127

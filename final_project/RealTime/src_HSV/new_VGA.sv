@@ -144,45 +144,6 @@ module VGA(
         endcase
     end
 
-    // Sync signals
-    /*always_comb begin
-        case(state_r)
-            S_IDLE: begin
-                hsync_w = 1'b1;
-            end
-            S_DISPLAY: begin
-                if (h_counter_r == 0) begin
-                    hsync_w = 1'b0;
-                end
-                else if (h_counter_r == H_SYNC -) begin
-                    hsync_w = 1'b1;
-                end
-                else begin
-                    hsync_w = hsync_r;
-                end
-            end
-        endcase
-    end*/
-    /*
-    always_comb begin
-        case(state_r)
-            S_IDLE: begin
-                vsync_w = 1'b1;
-            end
-            S_DISPLAY: begin
-                if (v_counter_r == 0) begin
-                    vsync_w = 1'b0;
-                end
-                else if (v_counter_r == V_SYNC) begin
-                    vsync_w = 1'b1;                 
-                end
-                else begin
-                    vsync_w = vsync_r;
-                end
-            end
-        endcase
-    end*/
-    
     // RGB data
     always_comb begin
         case(state_r)
@@ -200,18 +161,6 @@ module VGA(
                     vga_b_w = 8'b0;
                 end
                 else begin
-                    /*
-					if(h_counter_r < (H_VALID_LB + i_display_data) || h_counter_r > (H_TOTAL - i_display_data)) begin
-						vga_r_w = 8'd200;
-						vga_g_w = 8'd200;
-						vga_b_w = 8'd200;
-					end
-					else begin
-						vga_r_w = 8'd0;
-						vga_g_w = 8'd0;
-						vga_b_w = 8'd0;						  
-					end
-                    */
                     access_address = ((h_counter_r - H_VALID_LB) >> 2) + ((v_counter_r - V_VALID_LB) >> 2) * (`PIXEL_COLUMN);
 
                     if(i_color_blackb == 1) begin
@@ -224,29 +173,6 @@ module VGA(
                         vga_g_w = 8'b0;
                         vga_b_w = 8'b0;
                     end
-					
-                    /*
-                    if(i_display_data >= minimum && i_display_data <= onefour) begin
-						vga_r_w = 0;
-						vga_g_w = 0;
-						vga_b_w = (8'd200 - 8'd32) * (i_display_data - 8'd0) / (onefour - 8'd0) + 8'd32;
-					end
-					else if (i_display_data > onefour && i_display_data <= half) begin
-						vga_r_w = 0;
-						vga_g_w = (8'd200 - 8'd32) * (i_display_data - onefour) / (half - onefour) + 8'd32;
-						vga_b_w = (8'd32 - 8'd200) * (i_display_data - onefour) / (half - onefour) + 8'd200;
-					end
-                    else if (i_display_data > half && i_display_data <= threefour) begin
-						vga_r_w = (8'd200 - 8'd32) * (i_display_data - half) / (threefour - half) + 8'd32;
-						vga_g_w = (8'd32 - 8'd200) * (i_display_data - half) / (threefour - half) + 8'd200;
-						vga_b_w = 0;
-					end
-                    else begin
-						vga_r_w = (8'd32 - 8'd200) * (i_display_data - threefour) / (maximum - threefour) + 8'd200;
-						vga_g_w = 0;
-						vga_b_w = 0;
-					end
-                    */
                 end
             end
         endcase
@@ -274,8 +200,6 @@ module VGA(
         if (i_rst) begin
             h_counter_r <= 0;   
             v_counter_r <= 0;
-            //hsync_r <= 1'b1;
-            //vsync_r <= 1'b1;
             vga_r_r <= 8'b0;
             vga_g_r <= 8'b0;
             vga_b_r <= 8'b0;
@@ -286,8 +210,6 @@ module VGA(
         else begin
             h_counter_r <= h_counter_w;
             v_counter_r <= v_counter_w;
-            //hsync_r <= hsync_w;
-            //vsync_r <= vsync_w;
             vga_r_r <= vga_r_w;
             vga_g_r <= vga_g_w;
             vga_b_r <= vga_b_w;
