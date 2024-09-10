@@ -27,7 +27,8 @@ We implemented Delay-and-sum Beamforming by 16 MEMS microphones (INMP441) which 
 ![](https://i.imgur.com/sHGJzrl.png)
 
 The following are recorded demo videos.
-`1 sound source`[https://youtu.be/gSOAMRXZsIY]
-`2 sound sources`[https://youtu.be/PNLFveaGfNs]
+
+[1 sound source](https://youtu.be/gSOAMRXZsIY)
+[2 sound sources](https://youtu.be/PNLFveaGfNs)
 
 
